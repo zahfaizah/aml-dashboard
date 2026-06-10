@@ -469,7 +469,7 @@ body.dark .tp-seg-btn.active{box-shadow:0 1px 4px rgba(0,0,0,.3)}
 <button onclick="authCheck()" style="width:100%;padding:.6rem;background:#2196F3;color:#fff;border:none;border-radius:10px;font-size:.78rem;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:.3px" onmouseover="this.style.background='#1565C0'" onmouseout="this.style.background='#2196F3'">Access Dashboard</button>
 </div>
 </div>
-<div id="app-root" style="display:none">
+<div id="app-root" style="display:none;width:100%">
 
 <div class="mn"><div class="mn-inner">
 
@@ -2868,7 +2868,7 @@ async function authCheck(){
   if(h===AUTH_HASH){
     sessionStorage.setItem('aml_auth','1');
     document.getElementById('auth-gate').style.display='none';
-    document.getElementById('app-root').style.display='';
+    document.getElementById('app-root').style.display='contents';
   } else {
     document.getElementById('auth-err').textContent='Incorrect password';
     document.getElementById('auth-pw').style.borderColor='#f87171';
@@ -2877,7 +2877,7 @@ async function authCheck(){
 }
 if(sessionStorage.getItem('aml_auth')==='1'){
   document.getElementById('auth-gate').style.display='none';
-  document.getElementById('app-root').style.display='';
+  document.getElementById('app-root').style.display='contents';
 }
 document.getElementById('auth-pw').focus();
 </script>
