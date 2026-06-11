@@ -794,7 +794,7 @@ function renderScreening(){
     h+='<div class="cd"><div class="cd-t">Generated vs Closed</div><div style="height:200px"><canvas id="sc-gc-bar"></canvas></div></div></div>';
   } else {
     h+='<div class="cd"><div class="cd-t">Realtime Screening Trend</div><div style="height:260px"><canvas id="sc-rt-trend"></canvas></div></div>';
-    h+='<div class="cr c2"><div class="cd"><div class="cd-t">Generated vs Closed</div><div style="height:260px"><canvas id="sc-gc-bar"></canvas></div></div>';
+    h+='<div class="cr c2" style="margin-top:.65rem"><div class="cd"><div class="cd-t">Generated vs Closed</div><div style="height:260px"><canvas id="sc-gc-bar"></canvas></div></div>';
     h+='<div class="cd"><div class="cd-t">Generated vs Closed \u2014 Trend</div><div style="height:260px"><canvas id="sc-gc-line"></canvas></div></div></div>';
   }
 
@@ -824,11 +824,11 @@ function renderScreening(){
   h+='<div class="dp" id="dp-hits">';
   // Individual + Entity tables
   h+='<div class="cr c2e">';
-  h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var gi_fh=0,gi_th=0,gi_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.indiv_fh_total),th=N(r.indiv_th_total),t=N(r.indiv_generated);gi_fh+=fh;gi_th+=th;gi_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
   h+='<tr class="tr"><td>Total</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table></div>';
-  h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var ge_fh=0,ge_th=0,ge_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.entity_fh_total),th=N(r.entity_th_total),t=N(r.entity_generated);ge_fh+=fh;ge_th+=th;ge_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
   h+='<tr class="tr"><td>Total</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table></div>';
@@ -916,11 +916,11 @@ function renderScreening(){
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:9}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
   } else {
     allCharts.push(new Chart(document.getElementById('sc-ie'),{type:'line',data:{labels:lb,datasets:[
-      lds('Indiv False Hit',cd.map(function(d){return N(d.indiv_fh_total)}),CL.blue),
-      lds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),CL.blue,{noFill:true}),
-      lds('Entity False Hit',cd.map(function(d){return N(d.entity_fh_total)}),CL.mid,{dash:true,hollow:true}),
-      lds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),CL.gray,{dash:true,noFill:true})
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:10,font:{size:9}}},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:42}}}}));
+      Object.assign(lds('Indiv False Hit',cd.map(function(d){return N(d.indiv_fh_total)}),CL.blue),{datalabels:{display:function(c){return window.showLabels},color:'#1A1A2E',backgroundColor:'rgba(255,255,255,.85)',borderRadius:3,padding:{top:2,bottom:2,left:4,right:4},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},anchor:'end',align:'top',offset:4}}),
+      Object.assign(lds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),CL.blue,{noFill:true}),{datalabels:{display:function(c){return window.showLabels},color:'#1A1A2E',backgroundColor:'rgba(255,255,255,.85)',borderRadius:3,padding:{top:2,bottom:2,left:4,right:4},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},anchor:'end',align:'bottom',offset:4}}),
+      Object.assign(lds('Entity False Hit',cd.map(function(d){return N(d.entity_fh_total)}),CL.mid,{dash:true,hollow:true}),{datalabels:{display:function(c){return window.showLabels},color:'#1A1A2E',backgroundColor:'rgba(255,255,255,.85)',borderRadius:3,padding:{top:2,bottom:2,left:4,right:4},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},anchor:'end',align:'top',offset:4}}),
+      Object.assign(lds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),CL.gray,{dash:true,noFill:true}),{datalabels:{display:function(c){return window.showLabels},color:'#1A1A2E',backgroundColor:'rgba(255,255,255,.85)',borderRadius:3,padding:{top:2,bottom:2,left:4,right:4},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},anchor:'end',align:'bottom',offset:4}})
+    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:10,font:{size:9}}},tooltip:tt,datalabels:{display:false}},scales:{y:Object.assign(axOpts(),{min:0}),x:xO()},layout:{padding:{right:42,top:22,bottom:8}}}}));
   }
 
   // True hits by category (bar)
