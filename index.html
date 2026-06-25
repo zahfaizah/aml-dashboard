@@ -460,6 +460,17 @@ body.dark .tp-seg-btn.active{box-shadow:0 1px 4px rgba(0,0,0,.3)}
 </style>
 </head>
 <body>
+<div id="auth-gate" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+<div style="background:#1e293b;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2.5rem;width:340px;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center">
+<div style="font-size:.65rem;font-weight:600;letter-spacing:6px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.3rem">ANTI-MONEY LAUNDERING</div>
+<div style="font-size:1.6rem;font-weight:800;color:#60a5fa;margin-bottom:1.8rem;letter-spacing:-0.5px">Dashboard</div>
+<input id="auth-pw" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')authCheck()" style="width:100%;padding:.65rem .9rem;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.06);color:#fff;font-size:.82rem;font-weight:500;outline:none;margin-bottom:.5rem;transition:border-color .2s" onfocus="this.style.borderColor='#60a5fa'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+<div id="auth-err" style="font-size:.7rem;color:#f87171;min-height:1.2rem;margin-bottom:.5rem"></div>
+<button onclick="authCheck()" style="width:100%;padding:.6rem;background:#2196F3;color:#fff;border:none;border-radius:10px;font-size:.78rem;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:.3px" onmouseover="this.style.background='#1565C0'" onmouseout="this.style.background='#2196F3'">Access Dashboard</button>
+</div>
+</div>
+<div id="app-root" style="display:none;width:100%">
+
 <div class="mn"><div class="mn-inner">
 
 <!-- Page Header -->
@@ -2928,5 +2939,29 @@ function setTweak(kind,el){
 // Close theme panel on outside click
 document.addEventListener('click',function(e){var p=document.getElementById('theme-panel'),f=document.getElementById('theme-fab');if(p&&p.classList.contains('open')&&!p.contains(e.target)&&!f.contains(e.target))p.classList.remove('open')});
 </script>
+</div>
+<script>
+async function hashPw(pw){var enc=new TextEncoder().encode(pw);var buf=await crypto.subtle.digest('SHA-256',enc);return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0')}).join('')}
+var AUTH_HASH='fa979ebb9b5326b969d9503273dbf0311a25ac892c463533d7d6f0764600370c';
+async function authCheck(){
+  var pw=document.getElementById('auth-pw').value;
+  var h=await hashPw(pw);
+  if(h===AUTH_HASH){
+    sessionStorage.setItem('aml_auth','1');
+    document.getElementById('auth-gate').style.display='none';
+    document.getElementById('app-root').style.display='contents';
+  } else {
+    document.getElementById('auth-err').textContent='Incorrect password';
+    document.getElementById('auth-pw').style.borderColor='#f87171';
+    setTimeout(function(){document.getElementById('auth-err').textContent='';document.getElementById('auth-pw').style.borderColor='rgba(255,255,255,.15)'},2000);
+  }
+}
+if(sessionStorage.getItem('aml_auth')==='1'){
+  document.getElementById('auth-gate').style.display='none';
+  document.getElementById('app-root').style.display='contents';
+}
+document.getElementById('auth-pw').focus();
+</script>
+
 </body>
 </html>
