@@ -2760,12 +2760,13 @@ function renderTmsCs(el,data){
   var prev=prevLbl?data[prevLbl]:null;
   // KPIs by category for current month
   var bc=d.by_category||{};
-  var dataIssue=N(bc['Data Issue']),fakeId=N(bc['Fake ID Card'])||N(bc['Fake Id Card']),photoIssue=N(bc['Photo Issue']),other=N(d.total)-(dataIssue+fakeId+photoIssue);
-  if(other<0)other=0;
   var prevBc=prev?prev.by_category||{}:null;
   function dlt(k){if(!prevBc)return null;return delta(N(bc[k]),N(prevBc[k]),prevLbl)}
-  var deltas=[dlt('Data Issue'),(prev?delta(fakeId,N((prev.by_category||{})['Fake ID Card'])||N((prev.by_category||{})['Fake Id Card']),prevLbl):null),dlt('Photo Issue'),(prev?delta(N(d.total),N(prev.total),prevLbl):null)];
-  var O=outliers(deltas);
+  // Dynamic categories from data
+  var csCatKeys=Object.keys(bc).sort(function(a,b){return bc[b]-bc[a]});
+  var csDeltas=csCatKeys.map(function(k){return dlt(k)});
+  csDeltas.push(prev?delta(N(d.total),N(prev.total),prevLbl):null);
+  var O=outliers(csDeltas);
   // Build narrative summary from rows
   var topCat='';var topNum=0;Object.keys(bc).forEach(function(k){if(bc[k]>topNum){topNum=bc[k];topCat=k}});
   var summary=fmt(N(d.total))+' cases were submitted to the CS team for KYC verification due to discrepancies.\n';
@@ -2774,11 +2775,9 @@ function renderTmsCs(el,data){
 
   var h='';
   // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(4,1fr)">';
-  h+=kp('Data Issue',fmt(dataIssue),deltas[0],{hl:O[0]});
-  h+=kp('Fake ID Card',fmt(fakeId),deltas[1],{hl:O[1]});
-  h+=kp('Photo Issue',fmt(photoIssue),deltas[2],{hl:O[2]});
-  h+=kp('Total Cases',fmt(N(d.total)),deltas[3],{hl:O[3]});
+  h+='<div class="kr" style="grid-template-columns:repeat('+(csCatKeys.length+1)+',1fr)">';
+  csCatKeys.forEach(function(k,i){h+=kp(k,fmt(N(bc[k])),csDeltas[i],{hl:O[i]})});
+  h+=kp('Total Cases',fmt(N(d.total)),csDeltas[csDeltas.length-1],{hl:O[csDeltas.length-1]});
   h+='</div>';
   // Monthly trend across all months (so April shows alongside Jan/Feb/Mar)
   h+='<div class="cd" style="margin-bottom:.65rem"><div class="cd-t">CS Cases by Month</div><div style="height:200px"><canvas id="tms-cs-trend"></canvas></div></div>';
@@ -2788,7 +2787,22 @@ function renderTmsCs(el,data){
   h+='<div class="cd"><div class="cd-t">Category Distribution \u2014 '+shortMonth(cm)+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-cs-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.85" id="tms-cs-legend"></div></div></div>';
   // Detail table for current month
   h+='<div class="cd"><div class="cd-t">Case Detail \u2014 '+shortMonth(cm)+'</div><table class="tms-mini-tb"><thead><tr><th>Category</th><th>Remarks</th><th class="num">Number</th><th>Action</th></tr></thead><tbody>';
-  (d.rows||[]).forEach(function(r){h+='<tr><td>'+r.category+'</td><td style="white-space:normal;font-size:.66rem;color:var(--text3)">'+(r.remarks||'').replace(/\n/g,'<br>')+'</td><td class="num">'+fmt(r.number)+'</td><td style="font-size:.66rem;color:var(--text3)">'+(r.action||'').replace(/\n/g,'<br>')+'</td></tr>'});
+  // Group rows by category for clean rowspan display
+  var csGroups={};var csOrder=[];
+  (d.rows||[]).forEach(function(r){
+    if(!csGroups[r.category]){csGroups[r.category]=[];csOrder.push(r.category)}
+    csGroups[r.category].push(r);
+  });
+  csOrder.forEach(function(cat){
+    var rows=csGroups[cat];
+    rows.forEach(function(r,i){
+      h+='<tr>';
+      if(i===0)h+='<td rowspan="'+rows.length+'" style="vertical-align:top;font-weight:600;border-right:2px solid var(--border)">'+cat+'</td>';
+      h+='<td style="white-space:normal;font-size:.66rem;color:var(--text3)">'+(r.remarks||'').replace(/\n/g,'<br>')+'</td>';
+      h+='<td class="num">'+fmt(r.number)+'</td>';
+      h+='<td style="font-size:.66rem;color:var(--text3)">'+(r.action||'').replace(/\n/g,'<br>')+'</td></tr>';
+    });
+  });
   h+='</tbody></table></div>';
   h+='</div>';
   // Right: narrative
@@ -2818,15 +2832,12 @@ function renderTmsCs(el,data){
   if(trendCanvas){
     var trMonths=months;
     var trLb=trMonths.map(shortMonth);
-    var trTotals=trMonths.map(function(m){return N((data[m]||{}).total)});
-    var trDataIssue=trMonths.map(function(m){var b=(data[m]||{}).by_category||{};return N(b['Data Issue'])});
-    var trFake=trMonths.map(function(m){var b=(data[m]||{}).by_category||{};return N(b['Fake ID Card'])||N(b['Fake Id Card'])});
-    var trPhoto=trMonths.map(function(m){var b=(data[m]||{}).by_category||{};return N(b['Photo Issue'])});
-    allCharts.push(new Chart(trendCanvas,{type:'bar',data:{labels:trLb,datasets:[
-      bds('Data Issue',trDataIssue,'#2196F3','#90CAF9'),
-      bds('Fake ID Card',trFake,'#1565C0','#5C9CE6'),
-      bds('Photo Issue',trPhoto,'#00ACC1','#4DD0E1')
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
+    // Collect ALL categories across ALL months for consistent trend
+    var allCsCats={};trMonths.forEach(function(m){var b=(data[m]||{}).by_category||{};Object.keys(b).forEach(function(k){allCsCats[k]=true})});
+    var csTrendCats=Object.keys(allCsCats);
+    var csTrendPalette=[['#2196F3','#90CAF9'],['#1565C0','#5C9CE6'],['#00ACC1','#4DD0E1'],['#0D47A1','#5472D3'],['#283593','#7986CB'],['#0277BD','#4FC3F7']];
+    var csTrendDS=csTrendCats.map(function(cat,i){var p=csTrendPalette[i%csTrendPalette.length];return bds(cat,trMonths.map(function(m){var b=(data[m]||{}).by_category||{};return N(b[cat])}),p[0],p[1])});
+    allCharts.push(new Chart(trendCanvas,{type:'bar',data:{labels:trLb,datasets:csTrendDS},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
   }
 }
 
