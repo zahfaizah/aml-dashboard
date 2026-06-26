@@ -2719,6 +2719,11 @@ function renderTmsUnmask(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Unmasking Request data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
+  // If latest month has no real sources, fall back to most recent month that does
+  var dTest=data[cm]||{};
+  if((!dTest.sources||!dTest.sources.length)&&months.length>1){
+    for(var _i=months.length-1;_i>=0;_i--){var _d=data[months[_i]]||{};if(_d.sources&&_d.sources.length){cm=months[_i];break}}
+  }
   var d=data[cm]||{sources:[],uid_total:0,recv_total:0};
   var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
   var prev=prevLbl?data[prevLbl]:null;
