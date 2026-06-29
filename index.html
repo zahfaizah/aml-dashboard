@@ -661,8 +661,8 @@ function axOpts(){return{grace:'8%',grid:{color:gcv('--chart-grid')||'rgba(0,0,0
 function xO(){return{grid:{display:false},ticks:{font:{size:9},color:gcv('--text3')||'#6B7280',autoSkip:false,maxRotation:0,minRotation:0},offset:true}}
 var _lblClr='#374151';
 function updLblClr(){_lblClr=document.body.classList.contains('dark')?'#C0C2CC':'#374151'}
-function mkBDL(){return{anchor:'end',align:'end',clamp:true,clip:false,color:function(){return _lblClr},font:{size:9,weight:'700'},display:function(){return window.showLabels},formatter:function(v){return v===0?'':fmt(v)},offset:4,padding:{bottom:2}}}
-function mkLDL(){return{display:function(c){return window.showLabels},anchor:'end',align:'top',clamp:true,clip:false,color:function(){return _lblClr},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},offset:14,padding:{left:4,bottom:4}}}
+function mkBDL(){return{anchor:'end',align:'end',clamp:true,clip:false,color:function(){return _lblClr},font:{size:8,weight:'700'},display:function(){return window.showLabels},formatter:function(v){return v===0?'':fmt(v)},offset:3,padding:{bottom:1}}}
+function mkLDL(){return{display:function(c){return window.showLabels},anchor:'end',align:'top',clamp:true,clip:false,color:function(){return _lblClr},font:{size:8,weight:'700'},formatter:function(v){return fmt(v)},offset:10,padding:{left:3,bottom:3}}}
 function mkDDL(){return{color:'#fff',font:{size:9,weight:'700'},display:function(){return window.showLabels},formatter:function(v,c){var t=c.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);return v===0?'':Math.round(v/t*100)+'%'}}}
 
 function destroyCharts(){allCharts.forEach(function(c){try{c.destroy()}catch(e){}});allCharts=[]}
@@ -2188,6 +2188,32 @@ function tmsBullets(notes){
   return '<ul>'+lines.map(function(l){return '<li>'+tmsHL(l)+'</li>'}).join('')+'</ul>';
 }
 
+// Grouped bullets by month for multi-month mode
+function tmsBulletsMulti(data,months){
+  var h='';
+  var hasAny=false;
+  months.forEach(function(m){
+    var d=data[m]||{};
+    var notes=d.notes||'';
+    // Auto-generate brief summary for months with numeric data but no notes
+    if(!notes.trim()){
+      var parts=[];
+      var numFields=['uid','utr','uid_total','recv_total','alerts','monitored','issue','reported','changed','answer','success','flagged','total'];
+      numFields.forEach(function(f){if(d[f]&&N(d[f])>0)parts.push(f.replace(/_/g,' ')+': '+fmt(N(d[f])))});
+      if(d.sources&&d.sources.length)parts.push(d.sources.length+' source(s)');
+      if(parts.length)notes=parts.join(', ')+'.';
+    }
+    if(!notes.trim())return;
+    hasAny=true;
+    h+='<div style="margin-bottom:.6rem"><div style="display:inline-block;padding:.15rem .5rem;background:var(--acc);color:#fff;border-radius:5px;font-size:.58rem;font-weight:700;margin-bottom:.35rem">'+shortMonth(m)+'</div>';
+    var lines=notes.split(/\n/).map(function(l){return l.trim()}).filter(Boolean);
+    lines=lines.map(function(l){return l.replace(/^([a-zA-Z]\.\s+|\d+\.\s+|[•·]\s*)/,'').trim()}).filter(Boolean);
+    h+='<ul>'+lines.map(function(l){return '<li>'+tmsHL(l)+'</li>'}).join('')+'</ul></div>';
+  });
+  if(!hasAny)h='<div class="narr-empty">No additional notes.</div>';
+  return h;
+}
+
 // Sorted list of months that have data in a sub-page dict
 function tmsMonthsOf(obj){
   if(!obj)return [];
@@ -2225,6 +2251,21 @@ function tmsGlance(items,cols){
   h+='</div>';
   return h;
 }
+// Aggregate all months' data into one object (sums numbers, concats arrays, merges notes)
+function tmsAgg(data,months){
+  var agg={_notes:[]};
+  months.forEach(function(m){var d=data[m]||{};Object.keys(d).forEach(function(k){
+    if(k==='notes'){if(d[k])agg._notes.push(shortMonth(m)+': '+d[k])}
+    else if(typeof d[k]==='number'){agg[k]=(agg[k]||0)+d[k]}
+    else if(Array.isArray(d[k])){agg[k]=(agg[k]||[]).concat(d[k])}
+    else if(k==='by_category'&&typeof d[k]==='object'){
+      if(!agg[k])agg[k]={};Object.keys(d[k]).forEach(function(c){agg[k][c]=(agg[k][c]||0)+d[k][c]})}
+    else if(!agg[k]){agg[k]=d[k]}
+  })});
+  agg.notes=agg._notes.join('\n');
+  return agg;
+}
+
 // Compute trend label vs prev row on a single field
 function tmsTrend(cur,prev,fieldOrFn){
   var c=typeof fieldOrFn==='function'?fieldOrFn(cur):N(cur[fieldOrFn]);
@@ -2352,8 +2393,9 @@ function renderTmsRekyc(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Re-KYC data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['changed','unchanged','no_update','revoked']);
   var O=outliers(deltas);
@@ -2373,7 +2415,7 @@ function renderTmsRekyc(el,data){
   var rDomTxt=(rDom&&rDom.v>0)?rDom.l:'\u2014';
   var rTotTrend=tmsTrend(d,prev,function(r){return N(r.changed)+N(r.unchanged)+N(r.no_update)+N(r.revoked)});
   var rGl=[{l:'Total Cases',v:fmt(rTotal),sub:rTotTrend?rTotTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rTotTrend?rTotTrend.cls:''},{l:'Status Updated',v:fmt(N(d.changed)),sub:rTotal>0?Math.round(N(d.changed)/rTotal*100)+'% of total':''},{l:'Dominant',v:rDomTxt,sub:rDom&&rDom.v>0?fmt(rDom.v)+' UIDs':''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2390,8 +2432,9 @@ function renderTmsRfiUser(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No RFI User data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['answer','uncontactable','on_process']);
   var O=outliers(deltas);
@@ -2409,7 +2452,7 @@ function renderTmsRfiUser(el,data){
   var reachRate=rfuTotal>0?Math.round(N(d.answer)/rfuTotal*1000)/10:0;
   var rfuTrend=tmsTrend(d,prev,function(r){return N(r.answer)+N(r.uncontactable)+N(r.on_process)});
   var rfuGl=[{l:'Total Sent',v:fmt(rfuTotal),sub:rfuTrend?rfuTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rfuTrend?rfuTrend.cls:''},{l:'Answered',v:reachRate+'%',sub:fmt(N(d.answer))+' of '+fmt(rfuTotal)},{l:'Outstanding',v:fmt(N(d.on_process)),sub:'On Process'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rfuGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rfuGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2425,8 +2468,9 @@ function renderTmsRfiKyb(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No RFI KYB data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['success','failed','on_process']);
   var O=outliers(deltas);
@@ -2454,7 +2498,7 @@ function renderTmsRfiKyb(el,data){
   var successRate=rkTotal>0?Math.round(N(d.success)/rkTotal*1000)/10:0;
   var rkTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
   var rkGl=[{l:'Total Sent',v:fmt(rkTotal),sub:rkTrend?rkTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rkTrend?rkTrend.cls:''},{l:'Success Rate',v:successRate+'%',sub:fmt(N(d.success))+' EDD Success'},{l:'In Progress',v:fmt(N(d.on_process)),sub:'Under monitoring'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rkGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rkGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   // Doughnut
@@ -2470,8 +2514,9 @@ function renderTmsRisknotes(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Risk Notes data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr','reported_case']);
   var O=outliers(deltas);
@@ -2489,7 +2534,7 @@ function renderTmsRisknotes(el,data){
   var rnUtrTrend=tmsTrend(d,prev,'utr');
   var rnRepShare=N(d.utr)>0?Math.round(N(d.reported_case)/(N(d.utr)+N(d.reported_case))*100):0;
   var rnGl=[{l:'Users Identified',v:fmt(N(d.uid)),sub:rnTrend?rnTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rnTrend?rnTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:rnUtrTrend?rnUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rnUtrTrend?rnUtrTrend.cls:''},{l:'Previously Reported',v:fmt(N(d.reported_case)),sub:rnRepShare+'% already escalated'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rnGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rnGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2505,8 +2550,9 @@ function renderTmsP2p(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No P2P Receiver data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr']);
   var O=outliers(deltas);
@@ -2522,7 +2568,7 @@ function renderTmsP2p(el,data){
   var p2pTrend=tmsTrend(d,prev,'uid');
   var p2pUtrTrend=tmsTrend(d,prev,'utr');
   var p2pGl=[{l:'Users Flagged',v:fmt(N(d.uid)),sub:p2pTrend?p2pTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:p2pTrend?p2pTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:p2pUtrTrend?p2pUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:p2pUtrTrend?p2pUtrTrend.cls:''},{l:'Reported',v:fmt(N(d.utr)),sub:fmt(N(d.uid))+' users this month'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(p2pGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(p2pGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2537,8 +2583,9 @@ function renderTmsAnomaly(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Anomaly User data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr','reported','monitored_fv']);
   var O=outliers(deltas);
@@ -2553,8 +2600,8 @@ function renderTmsAnomaly(el,data){
   h+='<div class="cd"><div class="cd-t">Anomaly User Trend</div><div style="height:280px"><canvas id="tms-anomaly-c"></canvas></div></div>';
   var anTrend=tmsTrend(d,prev,'uid');
   var anUtrTrend=tmsTrend(d,prev,'utr');
-  var anGl=[{l:'Users Identified',v:fmt(N(d.uid)),sub:anTrend?anTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anTrend?anTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:anUtrTrend?anUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anUtrTrend?anUtrTrend.cls:''},{l:'Reported',v:fmt(N(d.reported)),sub:'Cases reported'},{l:'Face Verification',v:fmt(N(d.monitored_fv)),sub:'Monitored for verification'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(anGl,4)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  var anGl=[{l:'Users Identified',v:fmt(N(d.uid)),sub:anTrend?anTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anTrend?anTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:anUtrTrend?anUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anUtrTrend?anUtrTrend.cls:''},{l:'Reported',v:fmt(N(d.reported)),sub:isMulti?'total across all months':'Cases reported'},{l:'Face Verification',v:fmt(N(d.monitored_fv)),sub:'Monitored for verification'}];
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(anGl,4)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2571,8 +2618,9 @@ function renderTmsFaceVerif(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Face Verification data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['uid']);
   var O=outliers(deltas);
@@ -2585,7 +2633,7 @@ function renderTmsFaceVerif(el,data){
   h+='<div class="cd"><div class="cd-t">Face Verification Trend</div><div style="height:280px"><canvas id="tms-fv-c"></canvas></div></div>';
   var fvTrend=tmsTrend(d,prev,'uid');
   var fvGl=[{l:'UIDs Verified',v:fmt(N(d.uid)),sub:fvTrend?fvTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:fvTrend?fvTrend.cls:''},{l:'Source',v:d.source||'—',sub:'Referral source'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(fvGl)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(fvGl)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2599,8 +2647,9 @@ function renderTmsDormant(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Dormant data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['monitored','uid','utr']);
   var O=outliers(deltas);
@@ -2617,7 +2666,7 @@ function renderTmsDormant(el,data){
   var dorTrend=tmsTrend(d,prev,'uid');
   var dorMonTrend=tmsTrend(d,prev,'monitored');
   var dorGl=[{l:'Monitored',v:fmt(N(d.monitored)),sub:dorMonTrend?dorMonTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:dorMonTrend?dorMonTrend.cls:''},{l:'Flagged',v:fmt(N(d.uid)),sub:dorTrend?dorTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:dorTrend?dorTrend.cls:''},{l:'Reported',v:fmt(N(d.utr)),sub:dorRate+'% of flagged'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(dorGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(dorGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2633,8 +2682,9 @@ function renderTmsMerchant(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No Merchant Screening data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['alerts']);
   var O=outliers(deltas);
@@ -2650,7 +2700,7 @@ function renderTmsMerchant(el,data){
   var mrcCum=0;months.forEach(function(mm){mrcCum+=N((data[mm]||{}).alerts)});
   var mrcAvg=months.length>0?(mrcCum/months.length).toFixed(1):'0';
   var mrcGl=[{l:'This Month',v:mrcStatus,sub:mrcTrend?mrcTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:mrcTrend?mrcTrend.cls:''},{l:'Total Across Months',v:fmt(mrcCum),sub:'~'+mrcAvg+' alerts per month'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(mrcGl,2)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(mrcGl,2)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2664,11 +2714,12 @@ function renderTmsTms(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No TMS data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{};
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
   // Use full month list for prev lookup so deltas work on single month
   var allTmsMonths=Object.keys(data).sort(function(a,b){return month_sort_key(a)-month_sort_key(b)});
   var cmIdxFull=allTmsMonths.indexOf(cm);
-  var prevLbl=cmIdxFull>0?allTmsMonths[cmIdxFull-1]:null;
+  var prevLbl=isMulti?null:(cmIdxFull>0?allTmsMonths[cmIdxFull-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   var deltas=tmsDeltas(d,prev,prevLbl,['alerts','monitored','issue']);
   var O=outliers(deltas);
@@ -2693,7 +2744,7 @@ function renderTmsTms(el,data){
   var issueRateSub=issueRateDelta!=null?(parseFloat(issueRateDelta)>0?'\u2191 ':(parseFloat(issueRateDelta)<0?'\u2193 ':'\u2014 '))+Math.abs(parseFloat(issueRateDelta)).toFixed(1)+'pp vs '+shortMonth(prevLbl):'';
   var issueRateCls=issueRateDelta!=null?(parseFloat(issueRateDelta)>0?'dn':(parseFloat(issueRateDelta)<0?'up':'')):'';
   var tmsGl=[{l:'Alert Δ',v:tmsAlertTrend?tmsAlertTrend.txt:'\u2014',sub:'vs '+(prevLbl?shortMonth(prevLbl):'\u2014'),subCls:tmsAlertTrend?tmsAlertTrend.cls:''},{l:'Issue Rate',v:issueRate.toFixed(1)+'%',sub:issueRateSub,subCls:issueRateCls},{l:'Issue Δ',v:tmsIssueTrend?tmsIssueTrend.txt:'\u2014',sub:fmt(N(d.issue))+' as Issue',subCls:tmsIssueTrend?tmsIssueTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(tmsGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(d.notes)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(tmsGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   var lb=months.map(shortMonth);
@@ -2727,11 +2778,32 @@ function renderTmsUnmask(el,data){
   var d=data[cm]||{sources:[],uid_total:0,recv_total:0};
   var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
   var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['uid_total','recv_total']);
+
+  // Aggregate data when multiple months selected
+  var isMulti=months.length>1;
+  var aggUid=0,aggRecv=0,aggSrcMap={},aggNotes=[];
+  if(isMulti){
+    months.forEach(function(m){var r=data[m]||{};aggUid+=N(r.uid_total);aggRecv+=N(r.recv_total);
+      (r.sources||[]).forEach(function(s){if(!aggSrcMap[s.source])aggSrcMap[s.source]={uid:0,recv:0};aggSrcMap[s.source].uid+=s.uid;aggSrcMap[s.source].recv+=s.receivers});
+      if(r.notes)aggNotes.push(shortMonth(m)+': '+r.notes);
+    });
+  }
+  var dispUid=isMulti?aggUid:N(d.uid_total);
+  var dispRecv=isMulti?aggRecv:N(d.recv_total);
+  var dispSrcCount=isMulti?Object.keys(aggSrcMap).length:(d.sources||[]).length;
+
+  var deltas=isMulti?[null,null]:tmsDeltas(d,prev,prevLbl,['uid_total','recv_total']);
   var O=outliers(deltas);
-  // Notes: use data notes if available, otherwise build summary
+
+  // Summary
   var summary='';
-  if(d.notes&&d.notes.length>0){
+  if(isMulti){
+    var topSrc=null,topRecv=0;
+    Object.keys(aggSrcMap).forEach(function(k){if(aggSrcMap[k].recv>topRecv){topRecv=aggSrcMap[k].recv;topSrc=k}});
+    summary='Across '+months.length+' months, '+fmt(aggRecv)+' account numbers were requested across '+fmt(aggUid)+' UIDs.';
+    if(topSrc)summary+='\nThe largest source was '+topSrc+' with '+fmt(topRecv)+' total receivers.';
+    if(aggNotes.length)summary+='\n'+aggNotes.filter(function(n){return n.indexOf('No ')>=0||n.indexOf('0 ')>=0}).join('\n');
+  } else if(d.notes&&d.notes.length>0){
     summary=d.notes;
   } else if(d.sources&&d.sources.length&&N(d.uid_total)>0){
     var top=d.sources.slice().sort(function(a,b){return b.receivers-a.receivers})[0];
@@ -2741,21 +2813,16 @@ function renderTmsUnmask(el,data){
     summary='No unmasking requests were submitted during '+shortMonth(cm)+'.';
   }
   var h='';
-  // tmsCtx removed
   h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-  h+=kp('Number of UID',fmt(N(d.uid_total)),deltas[0],{hl:O[0]});
-  h+=kp('Account Number Receivers',fmt(N(d.recv_total)),deltas[1],{hl:O[1]});
+  h+=kp('Number of UID',fmt(dispUid),deltas[0],{hl:O[0]});
+  h+=kp('Account Number Receivers',fmt(dispRecv),deltas[1],{hl:O[1]});
   h+='</div>';
   h+='<div class="tms-grid">';
-  // Left: horizontal bar chart by source for current month
-  h+='<div class="cd"><div class="cd-t">Sources \u2014 '+(months.length>1?'All Months':shortMonth(cm))+'</div><div style="height:300px"><canvas id="tms-um-c"></canvas></div></div>';
-  // Right: narrative + month source table
+  h+='<div class="cd"><div class="cd-t">Sources \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><div style="height:300px"><canvas id="tms-um-c"></canvas></div></div>';
   h+='<div class="tms-stack">';
-  var umSrcCount=(d.sources||[]).length;
-  var umRecvPerUid=N(d.uid_total)>0?Math.round(N(d.recv_total)/N(d.uid_total)):'0';
-  var umTrend=tmsTrend(d,prev,'recv_total');
-  var umGl=[{l:'Unique Sources',v:fmt(umSrcCount),sub:umSrcCount===1?'1 request channel this month':umSrcCount+' request channels this month'},{l:'Number of UID',v:fmt(N(d.uid_total)),sub:'UIDs requested this '+shortMonth(cm)},{l:'Account Number Receiver',v:fmt(N(d.recv_total)),sub:umTrend?umTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:umTrend?umTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(umGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(summary)+'</div>';
+  var umTrend=isMulti?null:tmsTrend(d,prev,'recv_total');
+  var umGl=[{l:'Unique Sources',v:fmt(dispSrcCount),sub:isMulti?'across all months':(dispSrcCount===1?'1 request channel this month':dispSrcCount+' request channels this month')},{l:'Number of UID',v:fmt(dispUid),sub:isMulti?'total across '+months.length+' months':'UIDs requested this '+shortMonth(cm)},{l:'Account Number Receiver',v:fmt(dispRecv),sub:umTrend?umTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):(isMulti?'total across all months':''),subCls:umTrend?umTrend.cls:''}];
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(umGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(summary))+'</div>';
   h+='<div class="cd"><div class="cd-t">Source breakdown</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th>Source</th><th class="num">UID</th><th class="num">Receivers</th></tr></thead><tbody>';
   months.forEach(function(m){var r=data[m]||{sources:[]};var srcs=r.sources||[];if(srcs.length){srcs.forEach(function(s,i){h+='<tr><td>'+(i===0?shortMonth(m):'')+'</td><td>'+s.source+'</td><td class="num">'+fmt(s.uid)+'</td><td class="num">'+fmt(s.receivers)+'</td></tr>'})}else{h+='<tr><td>'+shortMonth(m)+'</td><td style="color:var(--text4);font-style:italic">No requests</td><td class="num">0</td><td class="num">0</td></tr>'}});
   h+='</tbody></table></div>';
@@ -2786,8 +2853,10 @@ function renderTmsCs(el,data){
   var months=tmsMonthsOf(data);
   if(!months.length){el.innerHTML='<div class="placeholder">No CS Escalation data.</div>';return}
   var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var d=data[cm]||{rows:[],by_category:{},total:0};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
+  var isMulti=months.length>1;
+  var d=isMulti?tmsAgg(data,months):(data[cm]||{rows:[],by_category:{},total:0});
+  if(isMulti&&!d.rows)d.rows=[];if(isMulti&&!d.by_category)d.by_category={};
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
   var prev=prevLbl?data[prevLbl]:null;
   // KPIs by category for current month
   var bc=d.by_category||{};
@@ -2815,9 +2884,9 @@ function renderTmsCs(el,data){
   h+='<div class="tms-grid">';
   // Left: doughnut + per-category table
   h+='<div class="tms-stack">';
-  h+='<div class="cd"><div class="cd-t">Category Distribution \u2014 '+shortMonth(cm)+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-cs-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.85" id="tms-cs-legend"></div></div></div>';
+  h+='<div class="cd"><div class="cd-t">Category Distribution \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-cs-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.85" id="tms-cs-legend"></div></div></div>';
   // Detail table for current month
-  h+='<div class="cd"><div class="cd-t">Case Detail \u2014 '+shortMonth(cm)+'</div><table class="tms-mini-tb"><thead><tr><th>Category</th><th>Remarks</th><th class="num">Number</th><th>Action</th></tr></thead><tbody>';
+  h+='<div class="cd"><div class="cd-t">Case Detail \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><table class="tms-mini-tb"><thead><tr><th>Category</th><th>Remarks</th><th class="num">Number</th><th>Action</th></tr></thead><tbody>';
   // Group rows by category for clean rowspan display
   var csGroups={};var csOrder=[];
   (d.rows||[]).forEach(function(r){
@@ -2844,7 +2913,7 @@ function renderTmsCs(el,data){
   var csRevoked=0;(d.rows||[]).forEach(function(r){if(r.action&&/revoke/i.test(r.action))csRevoked+=N(r.number)});
   var csTrend=tmsTrend(d,prev,'total');
   var csGl=[{l:'Top Category',v:csTop.l,sub:csTopShare+'% \u2022 '+fmt(csTop.v)+' UIDs'},{l:'Revoked',v:fmt(csRevoked),sub:N(d.total)>0?Math.round(csRevoked/N(d.total)*100)+'% action rate':''},{l:'Total Trend',v:fmt(N(d.total)),sub:csTrend?csTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:csTrend?csTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(csGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+tmsBullets(summary)+'</div>';
+  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(csGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(summary))+'</div>';
   h+='</div>';
   el.innerHTML=h;
   // Doughnut + custom legend
