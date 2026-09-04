@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AML Screening Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#F5F6FA;color:#1A1A2E;display:flex;min-height:100vh}
+.sb{width:230px;background:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:20;border-right:1px solid #E5E7EB;transition:width .22s cubic-bezier(.4,0,.2,1);overflow:visible}
+.sb.collapsed{width:56px}.sb::before{content:'';position:fixed;top:0;left:0;width:inherit;height:100vh;background:#fff;border-right:1px solid #E5E7EB;z-index:-1;transition:width .22s cubic-bezier(.4,0,.2,1)}.sb.collapsed::before{width:56px}
+.sb-toggle{position:absolute;top:50%;right:-11px;transform:translateY(-50%);width:22px;height:22px;background:#fff;border:1px solid #E5E7EB;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:30;box-shadow:0 1px 4px rgba(0,0,0,.1)}.sb-toggle:hover{background:#EFF6FF;box-shadow:0 2px 8px rgba(33,150,243,.2)}.sb-toggle svg{width:10px;height:10px;stroke:#6B7280;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s}.sb-toggle:hover svg{stroke:#2196F3}.sb.collapsed .sb-toggle svg{transform:rotate(180deg)}
+.sb-brand{padding:.9rem 1.1rem .75rem;display:flex;align-items:center;gap:.65rem;overflow:hidden}.sb-brand-icon{width:20px;height:20px;background:#2196F3;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.sb-brand-icon svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.2}.sb-brand-text{overflow:hidden;white-space:nowrap}.sb-brand-text h2{font-size:.82rem;color:#0C2D48;font-weight:700}.sb-brand-text span{font-size:.58rem;color:#94A3B8;display:block;margin-top:.1rem}.sb.collapsed .sb-brand-text{opacity:0;width:0;pointer-events:none}
+.sb-sl{padding:.5rem 1.1rem .2rem;font-size:.52rem;font-weight:700;color:#B0B7C3;text-transform:uppercase;letter-spacing:1px;white-space:nowrap;overflow:hidden}.sb.collapsed .sb-sl{opacity:0;height:0;padding:0;pointer-events:none}
+.sb-item{display:flex;align-items:center;gap:.65rem;padding:.55rem 1.1rem;cursor:pointer;color:#6B7280;font-size:.8rem;font-weight:500;transition:all .18s;border-left:3px solid transparent;margin:1px 6px 1px 0;border-radius:0 8px 8px 0;white-space:nowrap}.sb-item:hover{color:#0C2D48;background:#F0F4F8}.sb-item.on{color:#2196F3;border-left-color:#2196F3;font-weight:700;background:#EFF6FF;box-shadow:0 2px 12px rgba(33,150,243,.15)}
+.sb-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:.6}.sb-item:hover .sb-icon,.sb-item.on .sb-icon{opacity:1}.sb-icon svg{width:18px;height:18px;stroke:#6B7280;fill:none;stroke-width:1.8}.sb-item.on .sb-icon svg{stroke:#2196F3}
+.sb-label{white-space:nowrap;overflow:hidden}.sb.collapsed .sb-label{opacity:0;width:0;pointer-events:none}.sb.collapsed .sb-item{padding:.58rem 0;justify-content:center;border-left-color:transparent}.sb.collapsed .sb-item.on{border-left-color:#2196F3;background:#EFF6FF}
+#sb-float-tip{position:fixed;left:0;top:0;background:#1A1A2E;color:#fff;font-size:.72rem;font-weight:600;padding:.32rem .7rem;border-radius:7px;white-space:nowrap;pointer-events:none;z-index:9999;opacity:0;transition:opacity .12s;box-shadow:0 4px 12px rgba(0,0,0,.18)}#sb-float-tip::before{content:'';position:absolute;left:-5px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-right-color:#1A1A2E;border-left:0}#sb-float-tip.visible{opacity:1}
+.sb-footer{margin-top:auto;padding:.7rem 1.1rem;border-top:1px solid #E5E7EB;font-size:.58rem;color:#94A3B8;line-height:1.5;white-space:nowrap;overflow:hidden}.sb-footer-text{display:block}.sb.collapsed .sb-footer-text{opacity:0}
+.mn{margin-left:230px;flex:1;padding:1.5rem 2rem 3rem;transition:margin-left .22s cubic-bezier(.4,0,.2,1)}.mn-inner{max-width:1100px;margin:0 auto}.sb.collapsed~.mn{margin-left:56px}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:.5rem}.ph-title{font-size:1.35rem;font-weight:700;color:#0C2D48}.ph-right{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.ms{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:.4rem .8rem;font-size:.75rem;font-weight:600;color:#1A1A2E;cursor:pointer;font-family:inherit}
+.fd-wrap{position:relative}.fd-btn{display:flex;align-items:center;gap:.4rem;background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:.4rem .75rem;font-size:.75rem;font-weight:600;color:#1A1A2E;cursor:pointer;font-family:inherit}.fd-btn:hover{border-color:#2196F3}.fd-btn svg{width:14px;height:14px;stroke:#6B7280;fill:none;stroke-width:2}
+.fd-panel{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:.8rem;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,.08);z-index:100;display:none}.fd-panel.open{display:block}
+.fd-label{font-size:.55rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:.4rem}
+.fd-option{padding:.35rem .4rem;border-radius:6px;cursor:pointer;font-size:.75rem;color:#374151;transition:background .1s}.fd-option:hover{background:#F5F6FA}.fd-option.sel{color:#2196F3;font-weight:600;background:#E3F2FD}
+.fd-sep{height:1px;background:#E5E7EB;margin:.5rem 0}
+.sec-h{display:flex;align-items:center;gap:.5rem;margin:1.8rem 0 .8rem}.sec-h:first-child{margin-top:.2rem}.sec-lbl{font-size:.88rem;font-weight:700;color:#0C2D48}.sec-line{flex:1;height:1px;background:#E5E7EB;margin-left:.5rem}
+.kr{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;margin-bottom:.8rem}.kp{background:#fff;border-radius:10px;padding:.7rem .85rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}.kp-l{font-size:.6rem;color:#94A3B8;font-weight:500;margin-bottom:.3rem}.kp-v{font-size:1.35rem;font-weight:700;color:#1A1A2E;letter-spacing:-.5px}.kp-d{font-size:.58rem;font-weight:600;margin-top:.2rem}.kp-d.dn{color:#EF4444}.kp-d.up{color:#10B981}
+.kp-hl{border-left:3px solid #EF4444;background:linear-gradient(90deg,#FFF5F5,#fff)}
+.cr{display:grid;gap:.65rem}.c3{grid-template-columns:240px 1fr 1fr}.c2{grid-template-columns:1.4fr 1fr}.c2e{grid-template-columns:1fr 1fr}
+.cd{background:#fff;border-radius:10px;padding:1rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}.cd-t{font-size:.65rem;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:.7rem}
+.dw{position:relative;width:170px;height:170px;margin:0 auto}.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.dc b{font-size:1.3rem;font-weight:700;color:#1A1A2E;letter-spacing:-.5px;display:block}.dc small{font-size:.55rem;color:#94A3B8;font-weight:500}
+.ll{margin-top:.7rem}.li{display:flex;align-items:center;justify-content:space-between;font-size:.65rem;color:#6B7280;padding:.18rem 0}.li-l{display:flex;align-items:center;gap:.35rem}.li-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}.li-p{font-weight:600;color:#1A1A2E;font-size:.65rem}
+.tb{width:100%;font-size:.72rem;border-collapse:collapse}.tb th,.tb td{padding:.42rem .9rem;white-space:nowrap;text-align:center}.tb thead th{color:#94A3B8;font-weight:600;font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid #E5E7EB}.tb thead th:first-child{text-align:left}.tb tbody td{border-bottom:1px solid #F5F5F8;color:#374151;font-variant-numeric:tabular-nums}.tb tbody td:first-child{color:#6B7280;font-weight:500;text-align:left}.tb tbody tr:hover{background:#FAFBFD}.tb tbody tr.tr td{font-weight:700;color:#1A1A2E;border-top:1.5px solid #2196F3;border-bottom:none;padding-top:.48rem}.tb tbody tr.tr td:first-child{text-align:left}
+.tg-row{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem}.tg{padding:.18rem .5rem;border-radius:5px;font-size:.58rem;font-weight:600;cursor:pointer;border:1px solid #E5E7EB;background:#fff;color:#94A3B8;font-family:inherit;transition:all .15s}.tg:hover{border-color:#CBD5E1}.tg.on{color:#fff}
+.tg[data-c="PEP"].on{background:#2196F3;border-color:#2196F3}.tg[data-c="Sanction"].on{background:#1565C0;border-color:#1565C0}.tg[data-c="Internal List"].on{background:#5C9CE6;border-color:#5C9CE6}.tg[data-c="Multitype"].on{background:#90A4AE;border-color:#90A4AE}
+.tw{height:240px}.tw canvas{height:100%!important}
+.bi{height:6px;border-radius:3px;min-width:2px;background:linear-gradient(90deg,#2196F3,#90CAF9)}.bi.bz{background:linear-gradient(90deg,#E0E0E0,#F5F5F5);width:100%;height:4px}
+.dt{display:flex;align-items:center;gap:.4rem;padding:.5rem .2rem;margin-top:.5rem;font-size:.7rem;font-weight:600;color:#2196F3;cursor:pointer}.dt:hover{color:#1565C0}.dt-i{font-size:.55rem;transition:transform .2s;display:inline-block}.dt-i.open{transform:rotate(90deg)}
+.dp{display:none;margin-top:.4rem}.dp.open{display:block;animation:fi .25s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tab-page{display:none}.tab-page.on{display:block;animation:fi .2s ease}
+.placeholder{background:#fff;border-radius:10px;padding:3rem;text-align:center;color:#D1D5DB;font-size:.85rem;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.lbl-toggle{background:#fff;border:1.5px solid #E5E7EB;border-radius:8px;padding:.38rem .75rem;font-size:.72rem;font-weight:600;color:#94A3B8;cursor:pointer;font-family:inherit;transition:all .18s}.lbl-toggle.on{background:#EFF6FF;border-color:#2196F3;color:#2196F3}.lbl-toggle:hover{border-color:#2196F3}
+.dash-period{font-size:.72rem;color:#94A3B8;font-weight:500;margin-bottom:1.2rem;margin-top:-.6rem}
+.sec-link{background:none;border:none;font-size:.65rem;font-weight:600;color:#2196F3;cursor:pointer;font-family:inherit;padding:0;white-space:nowrap;margin-left:.5rem;text-decoration:none;display:inline-flex;align-items:center;gap:.2rem}.sec-link:hover{color:#1565C0;text-decoration:underline;gap:.35rem}
+.th-big{background:#fff;border-radius:10px;padding:1rem 1.2rem;box-shadow:0 1px 2px rgba(0,0,0,.03);text-align:center;border-left:3px solid #EF4444}.th-big b{font-size:1.8rem;font-weight:700;color:#1A1A2E;display:block;margin-bottom:.2rem}.th-big small{font-size:.6rem;color:#EF4444;font-weight:600}
+.cmp-wrap{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.cmp-col{border:1.5px solid #E5E7EB;border-radius:10px;padding:1rem;background:#fff}.cmp-col h3{font-size:.75rem;font-weight:700;color:#2196F3;margin-bottom:.8rem;text-align:center}.cmp-col.b h3{color:#26A69A}
+@media print{.sb,.ph-right,.sec-link,.dt,.tg-row,.dash-period{display:none!important}body{background:#F5F6FA!important;margin:0}.mn{margin-left:0!important;max-width:100%!important;padding:8mm 10mm!important}.tab-page{display:none!important}.tab-page.print-target{display:block!important}.cd,.kp{box-shadow:none!important;border:1px solid #E5E7EB!important;break-inside:avoid}.dp{display:block!important}@page{size:A4 landscape;margin:8mm 10mm}canvas{max-width:100%!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+</style>
+</head>
+<body>
+<div id="sb-float-tip"></div>
+<div class="sb" id="sidebar">
+  <div class="sb-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+  <div class="sb-brand"><div class="sb-brand-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="sb-brand-text"><h2>SANCTION SCREENING</h2><span>Dashboard</span></div></div>
+  <div class="sb-sl">Menu</div>
+  <div class="sb-item on" onclick="switchTab('dashboard',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><span class="sb-label">Main Dashboard</span></div>
+  <div class="sb-sl">Reports</div>
+  <div class="sb-item" onclick="switchTab('screening',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><span class="sb-label">Screening</span></div>
+  <div class="sb-item" onclick="switchTab('remittance',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><span class="sb-label">Remittance</span></div>
+  <div class="sb-item" onclick="switchTab('newsletter',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div><span class="sb-label">Newsletter</span></div>
+  <div class="sb-item" onclick="switchTab('dttot',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><span class="sb-label">DTTOT</span></div>
+  <div class="sb-item" onclick="switchTab('compare',this)"><div class="sb-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="8" height="18" rx="1"/></svg></div><span class="sb-label">Compare</span></div>
+  <div class="sb-footer"><span class="sb-footer-text">AML Sanction Team<br>Name Screening Division<br><a href="mailto:faizah.zahrani@me.com" style="font-size:.48rem;color:#D1D5DB;text-decoration:none;display:block;margin-top:.2rem">Feedback: faizah.zahrani@me.com</a></span></div>
+</div>
+<div class="mn"><div class="mn-inner">
+
+<!-- All tab pages - content rendered by JS -->
+<div class="tab-page on" id="tab-dashboard"><div class="ph"><div class="ph-title">Main Dashboard</div><div class="ph-right"><button id="lbl-toggle" class="lbl-toggle on" onclick="toggleLabels(this)">Values: On</button><select class="ms" id="sel-month" onchange="setMonth(this.value)"></select><div class="fd-wrap"><button class="fd-btn" onclick="this.nextElementSibling.classList.toggle('open')"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>Filters</button><div class="fd-panel" id="fp-dash"><div class="fd-label">Trend Window</div></div></div></div></div><div id="dash-period" class="dash-period"></div><div id="dash-content"></div></div>
+
+<div class="tab-page" id="tab-screening"><div class="ph"><div class="ph-title">Screening</div><div class="ph-right"><select class="ms" id="sel-month-sc" onchange="setMonth(this.value)"></select><div class="fd-wrap"><button class="fd-btn" onclick="this.nextElementSibling.classList.toggle('open')"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>Filters</button><div class="fd-panel" id="fp-sc"><div class="fd-label">Trend Window</div></div></div></div></div><div id="sc-content"></div></div>
+
+<div class="tab-page" id="tab-remittance"><div class="ph"><div class="ph-title">Remittance</div><div class="ph-right"><select class="ms" id="sel-month-rem" onchange="setMonth(this.value)"></select><div class="fd-wrap"><button class="fd-btn" onclick="this.nextElementSibling.classList.toggle('open')"><svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>Filters</button><div class="fd-panel" id="fp-rem"><div class="fd-label">Trend Window</div></div></div></div></div><div id="rem-content"></div></div>
+
+<div class="tab-page" id="tab-newsletter"><div class="ph"><div class="ph-title">Newsletter</div><div class="ph-right"><select class="ms" id="sel-month-news" onchange="setMonth(this.value)"></select></div></div><div id="news-content"></div></div>
+
+<div class="tab-page" id="tab-dttot"><div class="ph"><div class="ph-title">DTTOT</div></div><div id="dttot-content"></div></div>
+
+<div class="tab-page" id="tab-compare"><div class="ph"><div class="ph-title">Compare</div><div class="ph-right"></div></div><div id="cmp-content"></div></div>
+
+</div></div>
+
+<script>
+var STORE={"months": ["January 2026", "February 2026", "March 2026"], "data": {"January 2026": {"alert_pep": 4652, "alert_sanction": 4510, "alert_internal": 5174, "alert_multitype": 405, "total_alerts": 14741, "true_hit_indiv": 50, "true_hit_entity": 0, "true_hit_total": 50, "false_hit_indiv": 12046, "false_hit_entity": 2645, "indiv_fh": {"PEP": 4392, "Sanction": 2132, "Internal List": 5148, "Multitype": 374}, "indiv_th": {"PEP": 20, "Sanction": 6, "Internal List": 23, "Multitype": 1}, "entity_fh": {"PEP": 240, "Sanction": 2372, "Internal List": 3, "Multitype": 30}, "entity_th": {"PEP": 0, "Sanction": 0, "Internal List": 0, "Multitype": 0}, "indiv_generated": 12503, "entity_generated": 2747, "indiv_fh_total": 12046, "indiv_th_total": 50, "entity_fh_total": 2645, "entity_th_total": 0, "rt_generated": 15250, "rt_closed": 14741, "closure_rate": 96.7, "true_hit_rate": 0.33, "batch_scenarios": {"BATCH_PEP_INDIVIDUAL": {"false_hit": 819537, "true_hit": 3541, "manually_closed": 3187, "automation_closed": 296389, "alert_generated": 716675}, "BATCH_SANC_INDIVIDUAL": {"false_hit": 723, "true_hit": 1, "manually_closed": 724, "automation_closed": 0, "alert_generated": 720}, "BATCH_INTERNAL_INDIVIDUAL": {"false_hit": 204, "true_hit": 39, "manually_closed": 243, "automation_closed": 0, "alert_generated": 237}, "BATCH_PEP_MERCHANT": {"false_hit": 384, "true_hit": 0, "manually_closed": 384, "automation_closed": 0, "alert_generated": 436}, "BATCH_SANC_MERCHANT": {"false_hit": 1, "true_hit": 0, "manually_closed": 1, "automation_closed": 0, "alert_generated": 0}, "BATCH_SANC_INTERNAL_MERCHANT": {"false_hit": 3, "true_hit": 15, "manually_closed": 18, "automation_closed": 0, "alert_generated": 9}}, "batch_total_fh": 820852, "batch_total_th": 3596, "batch_total_mc": 4557, "batch_total_ac": 296389, "batch_total_ag": 718077, "batch_th_pep": 1320, "batch_th_crime": 0, "batch_th_pepcrime": 12, "batch_th_total": 1332, "batch_generated": 718077, "batch_closed": 300946, "rem_data_received": 3717, "rem_false_hit": 930, "rem_true_hit": 0, "rem_hit_rate": 25.0, "rem_rows": [{"email_date": "05 Jan 2026", "remittance_data": "Regulatory Report for Espay - Dana  050126", "false_hit": 170, "true_hit": 0, "data_received": 688}, {"email_date": "12 Jan 2026", "remittance_data": "Regulatory Report for Espay - Dana  120126", "false_hit": 304, "true_hit": 0, "data_received": 1196}, {"email_date": "19 Jan 2026", "remittance_data": "Regulatory Report for Espay - Dana  190126", "false_hit": 238, "true_hit": 0, "data_received": 971}, {"email_date": "26 Jan 2026", "remittance_data": "Regulatory Report for Espay - Dana  260126", "false_hit": 218, "true_hit": 0, "data_received": 862}], "subm_shop_id": 394, "subm_total_hit": 3, "subm_hit_rate": 0.8, "subm_detail": {"internal_shop_id": 394, "total_hit": 3, "false_hit_indiv": 3, "true_hit_indiv": 0, "false_hit_entity": 0, "true_hit_entity": 0, "total_true_hit": 0, "total_false_hit": 3, "hit_rate": 0.8}, "news_total": 40, "news_count": 15, "news_avg": 2.7, "news_rows": [{"email_date": "06 Jan 2026", "subject": "AMLnewsletter_050126", "recorded_names": 0}, {"email_date": "06 Jan 2026", "subject": "AMLnewsletter_060126", "recorded_names": 3}, {"email_date": "13 Jan 2026", "subject": "amlnews_070126", "recorded_names": 12}, {"email_date": "13 Jan 2026", "subject": "amlnews_080126", "recorded_names": 0}, {"email_date": "13 Jan 2026", "subject": "amlnews_12-130126", "recorded_names": 8}, {"email_date": "14 Jan 2026", "subject": "amlnews_140126", "recorded_names": 3}, {"email_date": "20 Jan 2026", "subject": "amlnews_150126", "recorded_names": 1}, {"email_date": "20 Jan 2026", "subject": "AMLnewsletter_190126", "recorded_names": 1}, {"email_date": "21 Jan 2026", "subject": "AMLnewsletter_200126", "recorded_names": 1}, {"email_date": "21 Jan 2026", "subject": "AMLnewsletter_210126", "recorded_names": 5}, {"email_date": "22 Jan 2026", "subject": "AMLnewsletter_220126", "recorded_names": 2}, {"email_date": "26 Jan 2026", "subject": "AMLnewsletter_230126", "recorded_names": 0}, {"email_date": "26 Jan 2026", "subject": "AMLnewsletter_260126", "recorded_names": 4}, {"email_date": "27 Jan 2026", "subject": "AMLnewsletter_270126", "recorded_names": 0}, {"email_date": "28 Jan 2026", "subject": "AMLnewsletter_280126", "recorded_names": 0}]}, "February 2026": {"alert_pep": 4268, "alert_sanction": 4020, "alert_internal": 4956, "alert_multitype": 388, "total_alerts": 13632, "true_hit_indiv": 45, "true_hit_entity": 0, "true_hit_total": 45, "false_hit_indiv": 11301, "false_hit_entity": 2286, "indiv_fh": {"PEP": 4057, "Sanction": 1948, "Internal List": 4928, "Multitype": 368}, "indiv_th": {"PEP": 8, "Sanction": 4, "Internal List": 28, "Multitype": 5}, "entity_fh": {"PEP": 203, "Sanction": 2068, "Internal List": 0, "Multitype": 15}, "entity_th": {"PEP": 0, "Sanction": 0, "Internal List": 0, "Multitype": 0}, "indiv_generated": 11322, "entity_generated": 2280, "indiv_fh_total": 11301, "indiv_th_total": 45, "entity_fh_total": 2286, "entity_th_total": 0, "rt_generated": 13602, "rt_closed": 13632, "closure_rate": 100.2, "true_hit_rate": 0.33, "batch_scenarios": {"BATCH_PEP_INDIVIDUAL": {"false_hit": 245694, "true_hit": 1697, "manually_closed": 2872, "automation_closed": 236295, "alert_generated": 50724}, "BATCH_SANC_INDIVIDUAL": {"false_hit": 743, "true_hit": 0, "manually_closed": 743, "automation_closed": 0, "alert_generated": 1486}, "BATCH_INTERNAL_INDIVIDUAL": {"false_hit": 144, "true_hit": 43, "manually_closed": 187, "automation_closed": 0, "alert_generated": 182}, "BATCH_PEP_MERCHANT": {"false_hit": 337, "true_hit": 5, "manually_closed": 342, "automation_closed": 0, "alert_generated": 290}, "BATCH_SANC_MERCHANT": {"false_hit": 1, "true_hit": 0, "manually_closed": 1, "automation_closed": 0, "alert_generated": 1}, "BATCH_SANC_INTERNAL_MERCHANT": {"false_hit": 2, "true_hit": 6, "manually_closed": 8, "automation_closed": 0, "alert_generated": 8}}, "batch_total_fh": 246921, "batch_total_th": 1751, "batch_total_mc": 4153, "batch_total_ac": 236295, "batch_total_ag": 52691, "batch_th_pep": 1623, "batch_th_crime": 0, "batch_th_pepcrime": 29, "batch_th_total": 1652, "batch_generated": 52691, "batch_closed": 240448, "rem_data_received": 23613, "rem_false_hit": 1432, "rem_true_hit": 3, "rem_hit_rate": 6.1, "rem_rows": [{"email_date": "02 Feb 2026", "remittance_data": "Regulatory Report for Espay - Dana  020226", "false_hit": 197, "true_hit": 0, "data_received": 856}, {"email_date": "09 Feb 2026", "remittance_data": "Regulatory Report for Espay - Dana  090226", "false_hit": 388, "true_hit": 0, "data_received": 1368}, {"email_date": "10 Feb 2026", "remittance_data": "Regulatory Report for Espay - Dana  100226", "false_hit": 236, "true_hit": 1, "data_received": 6276}, {"email_date": "17 Feb 2026", "remittance_data": "Regulatory Report for Espay - Dana  170226", "false_hit": 213, "true_hit": 1, "data_received": 5845}, {"email_date": "24 Feb 2026", "remittance_data": "Regulatory Report for Espay - Dana 240226", "false_hit": 398, "true_hit": 1, "data_received": 9268}], "subm_shop_id": 336, "subm_total_hit": 4, "subm_hit_rate": 1.2, "subm_detail": {"internal_shop_id": 336, "total_hit": 4, "false_hit_indiv": 4, "true_hit_indiv": 0, "false_hit_entity": 0, "true_hit_entity": 0, "total_true_hit": 0, "total_false_hit": 4, "hit_rate": 1.2}, "news_total": 51, "news_count": 15, "news_avg": 3.4, "news_rows": [{"email_date": "03 Feb 2026", "subject": "AMLnewsletter_29-300126", "recorded_names": 1}, {"email_date": "03 Feb 2026", "subject": "AMLnewsletter_020226", "recorded_names": 0}, {"email_date": "04 Feb 2026", "subject": "AMLnewsletter_030226", "recorded_names": 7}, {"email_date": "04 Feb 2026", "subject": "AMLnewsletter_040226", "recorded_names": 7}, {"email_date": "05 Feb 2026", "subject": "AMLnewsletter_050226", "recorded_names": 0}, {"email_date": "12 Feb 2026", "subject": "AMLnewsletter_06 - 090226", "recorded_names": 10}, {"email_date": "12 Feb 2026", "subject": "AMLnewsletter_10 - 110226", "recorded_names": 0}, {"email_date": "12 Feb 2026", "subject": "AMLewsletter_120226", "recorded_names": 4}, {"email_date": "20 Feb 2026", "subject": "AMLnewsletter_130226", "recorded_names": 4}, {"email_date": "20 Feb 2026", "subject": "AMLnewsletter_180226", "recorded_names": 0}, {"email_date": "20 Feb 2026", "subject": "AMLnewsletter_19-200226", "recorded_names": 2}, {"email_date": "24 Feb 2026", "subject": "AMLnewsletter_230226", "recorded_names": 2}, {"email_date": "25 Feb 2026", "subject": "AMLnewsletter_240226", "recorded_names": 0}, {"email_date": "25 Feb 2026", "subject": "AMLnewsletter_250226", "recorded_names": 6}, {"email_date": "26 Feb 2026", "subject": "AMLnewsletter_260226", "recorded_names": 8}]}, "March 2026": {"alert_pep": 5301, "alert_sanction": 4860, "alert_internal": 5926, "alert_multitype": 430, "total_alerts": 16517, "true_hit_indiv": 61, "true_hit_entity": 0, "true_hit_total": 61, "false_hit_indiv": 13754, "false_hit_entity": 2702, "indiv_fh": {"PEP": 5074, "Sanction": 2387, "Internal List": 5887, "Multitype": 406}, "indiv_th": {"PEP": 18, "Sanction": 5, "Internal List": 36, "Multitype": 2}, "entity_fh": {"PEP": 209, "Sanction": 2468, "Internal List": 3, "Multitype": 22}, "entity_th": {"PEP": 0, "Sanction": 0, "Internal List": 0, "Multitype": 0}, "indiv_generated": 13440, "entity_generated": 2617, "indiv_fh_total": 13754, "indiv_th_total": 61, "entity_fh_total": 2702, "entity_th_total": 0, "rt_generated": 16057, "rt_closed": 16517, "closure_rate": 102.9, "true_hit_rate": 0.38, "batch_scenarios": {"BATCH_PEP_INDIVIDUAL": {"false_hit": 130403, "true_hit": 1213, "manually_closed": 14661, "automation_closed": 52410, "alert_generated": 134274}, "BATCH_SANC_INDIVIDUAL": {"false_hit": 594, "true_hit": 2, "manually_closed": 596, "automation_closed": 0, "alert_generated": 595}, "BATCH_INTERNAL_INDIVIDUAL": {"false_hit": 350, "true_hit": 13, "manually_closed": 363, "automation_closed": 0, "alert_generated": 363}, "BATCH_PEP_MERCHANT": {"false_hit": 154, "true_hit": 0, "manually_closed": 154, "automation_closed": 0, "alert_generated": 154}, "BATCH_SANC_MERCHANT": {"false_hit": 1, "true_hit": 0, "manually_closed": 1, "automation_closed": 0, "alert_generated": 1}, "BATCH_SANC_INTERNAL_MERCHANT": {"false_hit": 0, "true_hit": 0, "manually_closed": 0, "automation_closed": 0, "alert_generated": 0}}, "batch_total_fh": 131502, "batch_total_th": 1228, "batch_total_mc": 15775, "batch_total_ac": 52410, "batch_total_ag": 135387, "batch_th_pep": 704, "batch_th_crime": 0, "batch_th_pepcrime": 25, "batch_th_total": 729, "batch_generated": 135387, "batch_closed": 68185, "rem_data_received": 15332, "rem_false_hit": 535, "rem_true_hit": 2, "rem_hit_rate": 3.5, "rem_rows": [{"email_date": "03 Mar 2026", "remittance_data": "Regulatory Report for Espay - Dana 030326", "false_hit": 253, "true_hit": 1, "data_received": 8000}, {"email_date": "03 Oct 2026", "remittance_data": "Regulatory Report for Espay - Dana 100326", "false_hit": 282, "true_hit": 1, "data_received": 7332}], "subm_shop_id": 0, "subm_total_hit": 0, "subm_hit_rate": 0, "subm_detail": {"internal_shop_id": 0, "total_hit": 0, "false_hit_indiv": 0, "true_hit_indiv": 0, "false_hit_entity": 0, "true_hit_entity": 0, "total_true_hit": 0, "total_false_hit": 0, "hit_rate": 0}, "news_total": 23, "news_count": 10, "news_avg": 2.3, "news_rows": [{"email_date": "02 Mar 2026", "subject": "AMLnewsletter_270226", "recorded_names": 1}, {"email_date": "02 Mar 2026", "subject": "AMLnewsletter_020326", "recorded_names": 1}, {"email_date": "03 Mar 2026", "subject": "AMLnewsletter_030326", "recorded_names": 7}, {"email_date": "04 Mar 2026", "subject": "AMLnewsletter_040326", "recorded_names": 7}, {"email_date": "06 Mar 2026", "subject": "AMLnewsletter_060326", "recorded_names": 3}, {"email_date": "10 Mar 2026", "subject": "AMLnewsletter_090326", "recorded_names": 1}, {"email_date": "12 Mar 2026", "subject": "amlnewsletter_100326", "recorded_names": 1}, {"email_date": "12 Mar 2026", "subject": "amlnewsletter_110326", "recorded_names": 0}, {"email_date": "16 Mar 2026", "subject": "amlnewsletter_120326", "recorded_names": 1}, {"email_date": "16 Mar 2026", "subject": "amlnewsletter_130326", "recorded_names": 1}]}}, "dttot": {"total_names": 15, "total_updates": 8, "rows": [{"email_date": "11 Apr 2025", "dttot_number": "DTTOT 76", "recorded_names": 1}, {"email_date": "21 May 2025", "dttot_number": "DTTOT 77", "recorded_names": 2}, {"email_date": "14 Jul 2025", "dttot_number": "DTTOT 78", "recorded_names": 2}, {"email_date": "04 Aug 2025", "dttot_number": "DTTOT 79", "recorded_names": 2}, {"email_date": "06 Aug 2025", "dttot_number": "DTTOT 80", "recorded_names": 2}, {"email_date": "30 Oct 2025", "dttot_number": "DTTOT 81", "recorded_names": 2}, {"email_date": "12 Jan 2026", "dttot_number": "DTTOT 20260105", "recorded_names": 2}, {"email_date": "02 Apr 2026", "dttot_number": "DTTOT-Maret 2026", "recorded_names": 2}]}, "highlight": "March 2026", "notes": {"remittance": "This March, there are three weeks worth of data that we haven't been able to process yet due to issues with the BO AML system for uploading data."}};
+var curMonth=STORE.highlight,curTrend='all',allCharts=[];
+window.showLabels=true;
+
+function N(v){return v==null?0:v}
+function fmt(n){if(n==null||isNaN(n))return'-';n=Math.round(n);return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')}
+function fmtPct(n){return n==null?'-':n.toFixed(1)+'%'}
+function fmtPct2(n){return n==null?'-':n.toFixed(2)+'%'}
+function shortMonth(l){var p=l.split(' ');return p[0].substring(0,3)+' '+p[1].substring(2)}
+function delta(c,p,pl){if(p==null||p===0)return c>0?{cls:'up',txt:'\u2191 New'}:{cls:'',txt:'\u2014'};var d=(c-p)/Math.abs(p)*100;if(d>0)return{cls:'up',txt:'\u2191 '+Math.abs(d).toFixed(1)+'% vs '+pl.split(' ')[0].substring(0,3)};if(d<0)return{cls:'dn',txt:'\u2193 '+Math.abs(d).toFixed(1)+'% vs '+pl.split(' ')[0].substring(0,3)};return{cls:'',txt:'\u2014'}}
+
+function ensureDL(){if(typeof ChartDataLabels!=='undefined'&&!Chart._DLreg){Chart.register(ChartDataLabels);Chart._DLreg=true}}
+Chart.defaults.font.family="'Plus Jakarta Sans',sans-serif";
+var CL={blue:'#2196F3',dk:'#1565C0',mid:'#5C9CE6',gray:'#90A4AE',teal:'#26A69A',red:'#EF4444',orange:'#2196F3'};
+var tt={backgroundColor:'#1A1A2E',titleFont:{size:11},bodyFont:{size:11},padding:10,cornerRadius:6,displayColors:true,boxWidth:8,boxHeight:8,boxPadding:4,callbacks:{label:function(c){return ' '+c.dataset.label+': '+fmt(c.parsed.y)}}};
+function makeGrad(ctx,t,b){var g=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,t);g.addColorStop(1,b);return g}
+function makeFill(ch,c){var g=ch.ctx.createLinearGradient(0,0,0,ch.height);g.addColorStop(0,c+'30');g.addColorStop(0.6,c+'08');g.addColorStop(1,c+'00');return g}
+function axOpts(){return{grid:{color:'#F0F1F4',drawBorder:false},ticks:{font:{size:9},color:'#B0B7C3',callback:function(v){return fmt(v)}}}}
+function xO(){return{grid:{display:false},ticks:{font:{size:9},color:'#6B7280'}}}
+function mkBDL(){return{anchor:'end',align:'end',color:'#374151',font:{size:9,weight:'600'},display:function(){return window.showLabels},formatter:function(v){return v===0?'':fmt(v)}}}
+function mkLDL(){return{display:function(c){return window.showLabels&&c.dataIndex===c.dataset.data.length-1},anchor:'end',align:'right',color:function(c){return c.dataset.borderColor},font:{size:9,weight:'700'},formatter:function(v){return fmt(v)},padding:{left:4}}}
+function mkDDL(){return{color:'#fff',font:{size:9,weight:'700'},display:function(){return window.showLabels},formatter:function(v,c){var t=c.chart.data.datasets[0].data.reduce(function(a,b){return a+b},0);return v===0?'':Math.round(v/t*100)+'%'}}}
+
+function destroyCharts(){allCharts.forEach(function(c){try{c.destroy()}catch(e){}});allCharts=[]}
+function getMonths(){var ms=STORE.months,idx=ms.indexOf(curMonth);if(idx<0)idx=ms.length-1;if(curTrend==='current')return[ms[idx]];if(curTrend==='previous')return idx>0?[ms[idx-1],ms[idx]]:[ms[idx]];if(curTrend==='quarterly'){return ms.slice(Math.max(0,idx-2),idx+1)}if(curTrend==='half')return ms.slice(Math.max(0,idx-5),idx+1);if(curTrend==='year')return ms.slice(Math.max(0,idx-11),idx+1);return ms}
+function prevMonth(){var ms=STORE.months,i=ms.indexOf(curMonth);return i>0?ms[i-1]:null}
+
+function buildSel(id){var s=document.getElementById(id);if(!s)return;s.innerHTML='';STORE.months.forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)})}
+function buildFilter(id){
+  var el=document.getElementById(id);if(!el)return;
+  var opts=[['all','All Months'],['current','Current Month'],['previous','Previous + Current'],['quarterly','Quarterly (3)'],['half','Half Year (6)'],['year','Full Year (12)']];
+  el.innerHTML='<div class="fd-label">Trend Window</div>';
+  opts.forEach(function(o){var d=document.createElement('div');d.className='fd-option'+(curTrend===o[0]?' sel':'');d.textContent=o[1];d.onclick=function(){curTrend=o[0];render();el.parentElement.classList.remove('open')};el.appendChild(d)})
+}
+function setMonth(v){curMonth=v;render()}
+function toggleLabels(btn){window.showLabels=!window.showLabels;btn.classList.toggle('on',window.showLabels);btn.textContent=window.showLabels?'Values: On':'Values: Off';allCharts.forEach(function(c){try{c.update('none')}catch(e){}})}
+
+function kp(label,value,dlt,extra){var c=dlt?dlt.cls:'',t=dlt?dlt.txt:'',hl=extra&&extra.hl?' kp-hl':'';return'<div class="kp'+hl+'"><div class="kp-l">'+label+'</div><div class="kp-v"'+(extra&&extra.color?' style="color:'+extra.color+'"':'')+'>'+value+'</div>'+(t?'<div class="kp-d '+c+'">'+t+'</div>':'')+'</div>'}
+
+// line dataset helper
+function lds(label,data,color,opts){var o={label:label,data:data,borderColor:color,backgroundColor:function(c){return makeFill(c.chart,color)},tension:.35,pointRadius:4,pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2,fill:true};if(opts){if(opts.dash)o.borderDash=[6,4];if(opts.hollow){o.pointBackgroundColor='#fff';o.pointBorderColor=color;o.pointBorderWidth=2.5}if(opts.noFill)o.fill=false}return o}
+function bds(label,data,c1,c2){return{label:label,data:data,backgroundColor:function(c){return makeGrad(c,c1,c2)},borderRadius:6,borderSkipped:false,barPercentage:.55,categoryPercentage:.65}}
+
+// ═══════ RENDER MAIN DASHBOARD ═══════
+function renderDashboard(){
+  var d=STORE.data[curMonth]||{},p=prevMonth(),pd=p?STORE.data[p]:null,ms=getMonths(),lb=ms.map(shortMonth),cd=ms.map(function(m){return STORE.data[m]||{}});
+  var h='';
+  // Screening section
+  h+='<div class="sec-h"><span class="sec-lbl">Screening</span><span class="sec-line"></span><button class="sec-link" onclick="switchTabById(\'screening\')">View detail \u2192</button></div>';
+  h+='<div class="kr">';
+  h+=kp('Realtime \u2014 Total Generated',fmt(N(d.rt_generated)),pd?delta(N(d.rt_generated),N(pd.rt_generated),p):null);
+  h+=kp('Realtime \u2014 Total True Hit',fmt(N(d.true_hit_total)),pd?delta(N(d.true_hit_total),N(pd.true_hit_total),p):null,{hl:true});
+  h+=kp('Batch \u2014 Total Generated',fmt(N(d.batch_generated)),pd?delta(N(d.batch_generated),N(pd.batch_generated),p):null);
+  h+=kp('Batch True Hits',fmt(N(d.batch_th_total)),pd?delta(N(d.batch_th_total),N(pd.batch_th_total),p):null,{hl:true});
+  h+='</div>';
+  h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Realtime Screening Trend</div><div style="height:200px"><canvas id="dc-rt"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Generated vs Closed</div><div style="height:200px"><canvas id="dc-batch"></canvas></div></div></div>';
+
+  // Remittance section
+  h+='<div class="sec-h"><span class="sec-lbl">Remittance</span><span class="sec-line"></span><button class="sec-link" onclick="switchTabById(\'remittance\')">View detail \u2192</button></div>';
+  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
+  h+=kp('Data Received',fmt(N(d.rem_data_received)),pd?delta(N(d.rem_data_received),N(pd.rem_data_received),p):null);
+  h+=kp('True Hit',String(N(d.rem_true_hit)),null,{color:'#2196F3'});
+  h+=kp('Sub-Merchant Hit Rate',fmtPct(N(d.subm_hit_rate)),null);
+  h+='</div>';
+  h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Remittance Data Received</div><div style="height:180px"><canvas id="dc-rem"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Sub-Merchant Hits</div><div style="height:180px"><canvas id="dc-subm"></canvas></div></div></div>';
+
+  // Newsletter + DTTOT
+  h+='<div class="cr c2e" style="margin-top:.65rem"><div>';
+  h+='<div class="sec-h" style="margin-top:.2rem"><span class="sec-lbl">Newsletter</span><span class="sec-line"></span><button class="sec-link" onclick="switchTabById(\'newsletter\')">View detail \u2192</button></div>';
+  h+='<div class="kr" style="grid-template-columns:1fr 1fr;margin-bottom:.65rem">';
+  h+='<div class="kp"><div class="kp-l">Names Recorded</div><div class="kp-v">'+fmt(N(d.news_total))+'</div><div class="kp-d" style="color:#94A3B8">'+N(d.news_count)+' newsletters</div></div>';
+  h+='<div class="kp"><div class="kp-l">Avg per Newsletter</div><div class="kp-v">'+N(d.news_avg)+'</div></div></div>';
+  h+='<div class="cd"><div class="cd-t">Monthly Names Trend</div><div style="height:160px"><canvas id="dc-news"></canvas></div></div></div>';
+  h+='<div>';
+  h+='<div class="sec-h" style="margin-top:.2rem"><span class="sec-lbl">DTTOT</span><span class="sec-line"></span><button class="sec-link" onclick="switchTabById(\'dttot\')">View detail \u2192</button></div>';
+  h+='<div class="kr" style="grid-template-columns:1fr 1fr;margin-bottom:.65rem">';
+  h+='<div class="kp"><div class="kp-l">Total Names</div><div class="kp-v">'+STORE.dttot.total_names+'</div><div class="kp-d" style="color:#94A3B8">Cumulative</div></div>';
+  h+='<div class="kp"><div class="kp-l">Total Updates</div><div class="kp-v">'+STORE.dttot.total_updates+'</div></div></div>';
+  h+='<div class="cd"><div class="cd-t">DTTOT Updates over Time</div><div style="height:160px"><canvas id="dc-dttot"></canvas></div></div></div></div>';
+
+  document.getElementById('dash-content').innerHTML=h;
+  document.getElementById('dash-period').textContent=curMonth+' \u2014 Summary';
+  ensureDL();
+  // Charts
+  allCharts.push(new Chart(document.getElementById('dc-rt'),{type:'bar',data:{labels:lb,datasets:[
+    {label:'True Hit',data:cd.map(function(d){return N(d.true_hit_total)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:5,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3},
+    {label:'Generated',data:cd.map(function(d){return N(d.rt_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:1},
+    {label:'Closed',data:cd.map(function(d){return N(d.rt_closed)}),type:'line',borderColor:CL.teal,borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#26A69A')},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:0}
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,boxHeight:6,padding:8,font:{size:8}}},tooltip:tt,datalabels:{display:false}},scales:{y:axOpts(),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:6}}}}));
+  allCharts.push(new Chart(document.getElementById('dc-batch'),{type:'bar',data:{labels:lb,datasets:[
+    {label:'True Hit',data:cd.map(function(d){return N(d.batch_total_th)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:5,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3},
+    {label:'Generated',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:1},
+    {label:'Closed',data:cd.map(function(d){return N(d.batch_closed)}),type:'line',borderColor:CL.teal,borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#26A69A')},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:0}
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,boxHeight:6,padding:8,font:{size:8}}},tooltip:tt,datalabels:{display:false}},scales:{y:axOpts(),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:6}}}}));
+  allCharts.push(new Chart(document.getElementById('dc-rem'),{type:'bar',data:{labels:lb,datasets:[bds('Data Received',cd.map(function(d){return N(d.rem_data_received)}),'#2196F3','#90CAF9')]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:16}}}}));
+  allCharts.push(new Chart(document.getElementById('dc-subm'),{type:'line',data:{labels:lb,datasets:[lds('Total Hit',cd.map(function(d){return N(d.subm_total_hit)}),CL.blue)]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:28}}}}));
+  // Newsletter cumulative
+  var cum=0,nd=[];STORE.months.forEach(function(m){cum+=N((STORE.data[m]||{}).news_total);nd.push({m:m,v:cum})});var nf=nd.filter(function(t){return ms.indexOf(t.m)>=0});
+  allCharts.push(new Chart(document.getElementById('dc-news'),{type:'line',data:{labels:nf.map(function(t){return shortMonth(t.m)}),datasets:[lds('Names',nf.map(function(t){return t.v}),CL.blue)]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:28}}}}));
+  // DTTOT
+  var dt=STORE.dttot;
+  allCharts.push(new Chart(document.getElementById('dc-dttot'),{type:'bar',data:{labels:dt.rows.map(function(r){return r.dttot_number}),datasets:[bds('Names',dt.rows.map(function(r){return r.recorded_names}),'#2196F3','#90CAF9')]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:Object.assign(axOpts(),{ticks:{stepSize:1}}),x:{grid:{display:false},ticks:{font:{size:7},color:'#6B7280',maxRotation:30}}},layout:{padding:{top:12}}}}));
+}
+
+// ═══════ RENDER SCREENING ═══════
+function renderScreening(){
+  var d=STORE.data[curMonth]||{},p=prevMonth(),pd=p?STORE.data[p]:null,ms=getMonths(),lb=ms.map(shortMonth),cd=ms.map(function(m){return STORE.data[m]||{}});
+  var h='';
+
+  // Realtime Screening highlight
+  h+='<div class="sec-h"><span class="sec-lbl">Realtime Screening</span><span class="sec-line"></span></div>';
+  h+='<div class="kr">';
+  h+=kp('Total Alert Generated',fmt(N(d.rt_generated)),pd?delta(N(d.rt_generated),N(pd.rt_generated),p):null);
+  h+=kp('Total Closed',fmt(N(d.rt_closed)),pd?delta(N(d.rt_closed),N(pd.rt_closed),p):null);
+  h+=kp('Total True Hit',fmt(N(d.true_hit_total)),pd?delta(N(d.true_hit_total),N(pd.true_hit_total),p):null,{hl:true});
+  h+=kp('Total False Hit',fmt(N(d.false_hit_indiv)+N(d.false_hit_entity)),pd?delta(N(d.false_hit_indiv)+N(d.false_hit_entity),N(pd.false_hit_indiv)+N(pd.false_hit_entity),p):null);
+  h+='</div>';
+  h+='<div class="cd"><div class="cd-t">Realtime Screening Trend</div><div style="height:260px"><canvas id="sc-rt-trend"></canvas></div></div>';
+
+  // Alert Processing
+  h+='<div class="sec-h"><span class="sec-lbl">Alert Processing</span><span class="sec-line"></span></div>';
+  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
+  h+=kp('Total Alert Generated',fmt(N(d.rt_generated)),pd?delta(N(d.rt_generated),N(pd.rt_generated),p):null);
+  h+=kp('Total Closed',fmt(N(d.rt_closed)),pd?delta(N(d.rt_closed),N(pd.rt_closed),p):null);
+  h+=kp('Closure Rate',fmtPct(N(d.closure_rate)),null);
+  h+='</div>';
+  h+='<div class="cr c2"><div class="cd"><div class="cd-t">Generated vs Closed</div><div style="height:260px"><canvas id="sc-gc-bar"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Generated vs Closed \u2014 Trend</div><div style="height:260px"><canvas id="sc-gc-line"></canvas></div></div></div>';
+
+  // Hit Analysis
+  h+='<div class="sec-h"><span class="sec-lbl">Hit Analysis</span><span class="sec-line"></span></div>';
+  h+='<div class="kr">';
+  h+=kp('True Hit (Individual)',fmt(N(d.true_hit_indiv)),pd?delta(N(d.true_hit_indiv),N(pd.true_hit_indiv),p):null,{hl:true});
+  h+=kp('False Hit (Individual)',fmt(N(d.false_hit_indiv)),pd?delta(N(d.false_hit_indiv),N(pd.false_hit_indiv),p):null);
+  h+=kp('True Hit (Entity)',fmt(N(d.true_hit_entity)),null);
+  h+=kp('False Hit (Entity)',fmt(N(d.false_hit_entity)),null);
+  h+='</div>';
+  h+='<div class="cr c2e">';
+  h+='<div class="cd"><div class="cd-t">Individual vs Entity \u2014 False Hit &amp; True Hit</div><div style="height:240px"><canvas id="sc-ie"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Hits by Category</div>';
+  
+  h+='<div style="height:210px"><canvas id="sc-thcat"></canvas></div></div></div>';
+
+  // Detail tables
+  h+='<div class="dt" onclick="toggleDetail(\'dp-hits\')"><span class="dt-i" id="icon-dp-hits">\u25B6</span><span>View detailed hit tables</span></div>';
+  h+='<div class="dp" id="dp-hits">';
+  // Individual + Entity tables
+  h+='<div class="cr c2e">';
+  h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  var gi_fh=0,gi_th=0,gi_t=0;
+  ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.indiv_fh_total),th=N(r.indiv_th_total),t=N(r.indiv_generated);gi_fh+=fh;gi_th+=th;gi_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
+  h+='<tr class="tr"><td>Total</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table></div>';
+  h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  var ge_fh=0,ge_th=0,ge_t=0;
+  ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.entity_fh_total),th=N(r.entity_th_total),t=N(r.entity_generated);ge_fh+=fh;ge_th+=th;ge_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
+  h+='<tr class="tr"><td>Total</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table></div>';
+  h+='</div>';
+  // Category breakdown
+  h+='<div style="margin-top:.65rem"></div><div class="cr c2e">';
+  h+='<div class="cd"><div class="cd-t">False Hit by Category</div><table class="tb"><thead><tr><th>Month</th><th>PEP</th><th>Sanction</th><th>Internal</th><th>Multi</th></tr></thead><tbody>';
+  ms.forEach(function(m){var r=STORE.data[m]||{};var i=r.indiv_fh||{},e=r.entity_fh||{};h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(N(i.PEP)+N(e.PEP))+'</td><td>'+fmt(N(i.Sanction)+N(e.Sanction))+'</td><td>'+fmt(N(i['Internal List'])+N(e['Internal List']))+'</td><td>'+fmt(N(i.Multitype)+N(e.Multitype))+'</td></tr>'});
+  h+='</tbody></table></div>';
+  h+='<div class="cd"><div class="cd-t">True Hit by Category</div><table class="tb"><thead><tr><th>Month</th><th>PEP</th><th>Sanction</th><th>Internal</th><th>Multi</th></tr></thead><tbody>';
+  ms.forEach(function(m){var r=STORE.data[m]||{};var i=r.indiv_th||{},e=r.entity_th||{};h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(N(i.PEP)+N(e.PEP))+'</td><td>'+fmt(N(i.Sanction)+N(e.Sanction))+'</td><td>'+fmt(N(i['Internal List'])+N(e['Internal List']))+'</td><td>'+fmt(N(i.Multitype)+N(e.Multitype))+'</td></tr>'});
+  h+='</tbody></table></div></div></div>';
+
+  // ── BATCH SCREENING ──
+  h+='<div class="sec-h"><span class="sec-lbl">Batch Screening</span><span class="sec-line"></span></div>';
+  h+='<div class="kr">';
+  h+=kp('Total Alert Generated',fmt(N(d.batch_generated)),pd?delta(N(d.batch_generated),N(pd.batch_generated),p):null);
+  h+=kp('Total Closed',fmt(N(d.batch_closed)),pd?delta(N(d.batch_closed),N(pd.batch_closed),p):null);
+  h+=kp('Total True Hit',fmt(N(d.batch_total_th)),pd?delta(N(d.batch_total_th),N(pd.batch_total_th),p):null,{hl:true});
+  h+=kp('Total False Hit',fmt(N(d.batch_total_fh)),pd?delta(N(d.batch_total_fh),N(pd.batch_total_fh),p):null);
+  h+='</div>';
+  h+='<div class="cd"><div class="cd-t">Batch Screening Trend</div><div style="height:260px"><canvas id="sc-batch-trend"></canvas></div></div>';
+
+  // Batch True Hit by Type
+  h+='<div style="margin-top:.65rem"></div><div class="cr c2e">';
+  h+='<div class="cd"><div class="cd-t">Batch PEP Individual True Hit</div><div style="height:220px"><canvas id="sc-batch-th-type"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">True Hit Type \u2014 '+curMonth+'</div>';
+  h+='<div class="th-big"><b>'+fmt(N(d.batch_th_total))+'</b><small>Total True Hit '+curMonth+'</small></div>';
+  h+='<table class="tb" style="margin-top:.8rem"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>';
+  h+='<tr><td>PEP</td><td>'+fmt(N(d.batch_th_pep))+'</td></tr>';
+  h+='<tr><td>Crime</td><td>'+fmt(N(d.batch_th_crime))+'</td></tr>';
+  h+='<tr><td>PEP/Crime</td><td>'+fmt(N(d.batch_th_pepcrime))+'</td></tr>';
+  h+='</tbody></table></div></div>';
+
+  // Batch detail table
+  h+='<div class="dt" onclick="toggleDetail(\'dp-batch\')"><span class="dt-i" id="icon-dp-batch">\u25B6</span><span>View batch detail table</span></div>';
+  h+='<div class="dp" id="dp-batch"><div class="cd"><div class="cd-t">Batch Alert Detail</div><div style="margin-bottom:.6rem"><select class="ms" id="batch-mf" style="font-size:.68rem"><option value="all">All Months</option></select></div><table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';
+  var scOrder=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];
+  ms.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var first=true;scOrder.forEach(function(s){var v=sc[s];if(v){h+='<tr><td>'+(first?shortMonth(m):'')+'</td><td style="text-align:left">'+s+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td><td>'+fmt(v.manually_closed)+'</td><td>'+fmt(v.automation_closed)+'</td><td>'+fmt(v.alert_generated)+'</td></tr>';first=false}})});
+  h+='</tbody></table></div></div>';
+
+  document.getElementById('sc-content').innerHTML=h;
+  ensureDL();
+
+  // Realtime trend: 4 lines
+  allCharts.push(new Chart(document.getElementById('sc-rt-trend'),{type:'bar',data:{labels:lb,datasets:[
+    {label:'True Hit',data:cd.map(function(d){return N(d.true_hit_total)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:6,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3},
+    {label:'Generated',data:cd.map(function(d){return N(d.rt_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.dk,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:1},
+    {label:'Closed',data:cd.map(function(d){return N(d.rt_closed)}),type:'line',borderColor:CL.teal,borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#26A69A')},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.teal,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:0}
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:12,font:{size:9}}},tooltip:tt,datalabels:{display:false}},scales:{y:Object.assign(axOpts(),{position:'left'}),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:10}}}}));
+
+  // Gen vs Closed bar
+  allCharts.push(new Chart(document.getElementById('sc-gc-bar'),{type:'bar',data:{labels:lb,datasets:[bds('Generated',cd.map(function(d){return N(d.rt_generated)}),'#2196F3','#90CAF9'),bds('Closed',cd.map(function(d){return N(d.rt_closed)}),'#26A69A','#80CBC4')]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:15,font:{size:11}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
+  // Gen vs Closed line trend
+  allCharts.push(new Chart(document.getElementById('sc-gc-line'),{type:'line',data:{labels:lb,datasets:[lds('Generated',cd.map(function(d){return N(d.rt_generated)}),CL.blue),lds('Closed',cd.map(function(d){return N(d.rt_closed)}),CL.teal,{dash:true,hollow:true})]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:16,font:{size:11}}},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:40}}}}));
+
+  // Individual vs Entity: 4 lines (FH+TH for each)
+  allCharts.push(new Chart(document.getElementById('sc-ie'),{type:'line',data:{labels:lb,datasets:[
+    lds('Indiv False Hit',cd.map(function(d){return N(d.indiv_fh_total)}),CL.blue),
+    lds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),CL.blue,{noFill:true}),
+    lds('Entity False Hit',cd.map(function(d){return N(d.entity_fh_total)}),CL.mid,{dash:true,hollow:true}),
+    lds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),CL.gray,{dash:true,noFill:true})
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:10,font:{size:9}}},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:42}}}}));
+
+  // True hits by category (bar)
+  window._thChart=new Chart(document.getElementById('sc-thcat'),{type:'bar',data:{labels:['PEP','Sanction','Internal List','Multitype'],datasets:[
+    {label:'False Hit',data:[N((d.indiv_fh||{}).PEP)+N((d.entity_fh||{}).PEP),N((d.indiv_fh||{}).Sanction)+N((d.entity_fh||{}).Sanction),N((d.indiv_fh||{})['Internal List'])+N((d.entity_fh||{})['Internal List']),N((d.indiv_fh||{}).Multitype)+N((d.entity_fh||{}).Multitype)],backgroundColor:'#80CBC4',borderRadius:6,borderSkipped:false,barPercentage:.85,categoryPercentage:.6,yAxisID:'y'},
+    {label:'True Hit',data:[N((d.indiv_th||{}).PEP)+N((d.entity_th||{}).PEP),N((d.indiv_th||{}).Sanction)+N((d.entity_th||{}).Sanction),N((d.indiv_th||{})['Internal List'])+N((d.entity_th||{})['Internal List']),N((d.indiv_th||{}).Multitype)+N((d.entity_th||{}).Multitype)],backgroundColor:'#2196F3',borderRadius:6,borderSkipped:false,barPercentage:.85,categoryPercentage:.6,yAxisID:'y1'}
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:Object.assign(axOpts(),{position:'left',title:{display:true,text:'False Hit',font:{size:9,weight:'600'},color:'#26A69A'}}),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'True Hit',font:{size:9,weight:'600'},color:'#2196F3'}}),x:{grid:{display:false},ticks:{font:{size:10,weight:'500'},color:'#6B7280'}}},layout:{padding:{top:20}}}});
+  allCharts.push(window._thChart);
+
+  // Batch trend: 4 lines
+  allCharts.push(new Chart(document.getElementById('sc-batch-trend'),{type:'bar',data:{labels:lb,datasets:[
+    {label:'True Hit',data:cd.map(function(d){return N(d.batch_total_th)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:6,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3},
+    {label:'Generated',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.dk,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:1},
+    {label:'Closed',data:cd.map(function(d){return N(d.batch_closed)}),type:'line',borderColor:CL.teal,borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#26A69A')},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.teal,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:0}
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:12,font:{size:9}}},tooltip:tt,datalabels:{display:false}},scales:{y:Object.assign(axOpts(),{position:'left'}),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:10}}}}));
+
+  // Batch PEP Individual True Hit trend
+  allCharts.push(new Chart(document.getElementById('sc-batch-th-type'),{type:'bar',data:{labels:lb,datasets:[
+    bds('PEP',cd.map(function(d){return N(d.batch_th_pep)}),'#2196F3','#90CAF9'),
+    bds('Crime',cd.map(function(d){return N(d.batch_th_crime)}),'#1565C0','#5C9CE6'),
+    bds('PEP/Crime',cd.map(function(d){return N(d.batch_th_pepcrime)}),'#5C9CE6','#B3D9F7')
+  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:9}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:14}}}}));
+  setTimeout(initBatchFilter,100);
+}
+
+function tglCat(b){if(!window._thChart)return;var cs=['PEP','Sanction','Internal List','Multitype'];b.classList.toggle('on');var i=cs.indexOf(b.dataset.c);window._thChart.data.datasets[i].hidden=!b.classList.contains('on');window._thChart.update()}
+
+// ═══════ RENDER REMITTANCE ═══════
+function renderRemittance(){
+  var d=STORE.data[curMonth]||{},p=prevMonth(),pd=p?STORE.data[p]:null,ms=getMonths(),lb=ms.map(shortMonth),cd=ms.map(function(m){return STORE.data[m]||{}});
+  var h='';
+  h+='<div class="sec-h"><span class="sec-lbl">Remittance Screening</span><span class="sec-line"></span></div>';
+  h+='<div class="kr">';
+  h+=kp('Total Data Received',fmt(N(d.rem_data_received)),pd?delta(N(d.rem_data_received),N(pd.rem_data_received),p):null);
+  h+=kp('Total False Hit',fmt(N(d.rem_false_hit)),pd?delta(N(d.rem_false_hit),N(pd.rem_false_hit),p):null);
+  h+=kp('Total True Hit',String(N(d.rem_true_hit)),null,{color:'#2196F3'});
+  h+=kp('Hit Rate',fmtPct(N(d.rem_hit_rate)),null);
+  h+='</div>';
+  h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Data Received</div><div style="height:280px"><canvas id="rem-recv"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Hit Analysis</div><div style="height:280px"><canvas id="rem-hits"></canvas></div></div></div>';
+  h+='<div style="margin-top:.65rem"></div><div class="cd"><div class="cd-t">Monthly Data</div><table class="tb"><thead><tr><th>Month</th><th>Data Received</th><th>False Hit</th><th>True Hit</th><th>Hit Rate</th></tr></thead><tbody>';
+  ms.forEach(function(m){var r=STORE.data[m]||{};h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(N(r.rem_data_received))+'</td><td>'+fmt(N(r.rem_false_hit))+'</td><td>'+N(r.rem_true_hit)+'</td><td>'+fmtPct(N(r.rem_hit_rate))+'</td></tr>'});
+  h+='</tbody></table></div>';
+  // Footnotes
+  var notes=STORE.notes&&STORE.notes.remittance;
+  if(notes){h+='<div style="margin-top:.6rem;padding:.5rem .7rem;background:#FFF8E1;border-radius:6px;border-left:3px solid #FFC107;font-size:.62rem;color:#795548;line-height:1.5"><b>Note:</b> '+notes+'</div>'}
+  h+='<div class="sec-h"><span class="sec-lbl">Sub-Merchant Screening</span><span class="sec-line"></span></div>';
+  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
+  h+=kp('Internal Shop IDs',fmt(N(d.subm_shop_id)),pd?delta(N(d.subm_shop_id),N(pd.subm_shop_id),p):null);
+  h+=kp('Total Hit',String(N(d.subm_total_hit)),pd?delta(N(d.subm_total_hit),N(pd.subm_total_hit),p):null);
+  h+=kp('Hit Rate',fmtPct(N(d.subm_hit_rate)),null);
+  h+='</div>';
+  h+='<div class="cd"><div class="cd-t">Monthly Data</div><table class="tb"><thead><tr><th>Month</th><th>Sub-Merchant</th><th>Total Hit</th><th>Hit Rate</th></tr></thead><tbody>';
+  ms.forEach(function(m){var r=STORE.data[m]||{};h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(N(r.subm_shop_id))+'</td><td>'+N(r.subm_total_hit)+'</td><td>'+fmtPct(N(r.subm_hit_rate))+'</td></tr>'});
+  h+='</tbody></table></div>';
+  document.getElementById('rem-content').innerHTML=h;
+  ensureDL();
+  allCharts.push(new Chart(document.getElementById('rem-recv'),{type:'bar',data:{labels:lb,datasets:[bds('Data Received',cd.map(function(d){return N(d.rem_data_received)}),'#2196F3','#90CAF9')]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:16}}}}));
+  allCharts.push(new Chart(document.getElementById('rem-hits'),{type:'line',data:{labels:lb,datasets:[lds('False Hit',cd.map(function(d){return N(d.rem_false_hit)}),CL.blue),lds('True Hit',cd.map(function(d){return N(d.rem_true_hit)}),CL.mid,{dash:true,hollow:true})]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:16,font:{size:11}}},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:40}}}}));
+}
+
+// ═══════ RENDER NEWSLETTER ═══════
+function renderNewsletter(){
+  var d=STORE.data[curMonth]||{},ms=getMonths(),lb=ms.map(shortMonth);
+  var h='';
+  h+='<div class="sec-h"><span class="sec-lbl">PPATK Newsletter Update</span><span class="sec-line"></span></div>';
+  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
+  h+=kp('Total Names Recorded',fmt(N(d.news_total)),null);
+  h+=kp('Newsletters Received',String(N(d.news_count)),null);
+  h+=kp('Avg Names per Newsletter',String(N(d.news_avg)),null);
+  h+='</div>';
+  h+='<div class="cr c2"><div class="cd"><div class="cd-t">Names per Newsletter</div><div style="height:260px"><canvas id="news-bar"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Monthly Trend</div><div style="height:260px"><canvas id="news-trend"></canvas></div></div></div>';
+  h+='<div style="margin-top:.65rem"></div><div class="cd"><div class="cd-t">'+curMonth+' \u2014 Newsletter Log</div><table class="tb"><thead><tr><th>Email Date</th><th>Subject</th><th>Recorded Names</th></tr></thead><tbody>';
+  (d.news_rows||[]).forEach(function(r){h+='<tr><td>'+r.email_date+'</td><td>'+r.subject+'</td><td>'+r.recorded_names+'</td></tr>'});
+  h+='<tr class="tr"><td></td><td>Total</td><td>'+fmt(N(d.news_total))+'</td></tr></tbody></table></div>';
+  document.getElementById('news-content').innerHTML=h;
+  ensureDL();
+  var rows=d.news_rows||[];
+  allCharts.push(new Chart(document.getElementById('news-bar'),{type:'bar',data:{labels:rows.map(function(r){return r.subject.replace(/AMLnewsletter_/gi,'').replace(/amlnews_/gi,'').substring(0,12)}),datasets:[bds('Names',rows.map(function(r){return r.recorded_names}),'#2196F3','#90CAF9')]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:{grid:{display:false},ticks:{font:{size:7},color:'#B0B7C3',maxRotation:45}}},layout:{padding:{top:14}}}}));
+  var cum=0,nd=[];STORE.months.forEach(function(m){cum+=N((STORE.data[m]||{}).news_total);nd.push({m:m,v:cum})});var nf=nd.filter(function(t){return ms.indexOf(t.m)>=0});
+  allCharts.push(new Chart(document.getElementById('news-trend'),{type:'line',data:{labels:nf.map(function(t){return shortMonth(t.m)}),datasets:[lds('Cumulative',nf.map(function(t){return t.v}),CL.blue)]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:32}}}}));
+}
+
+// ═══════ RENDER DTTOT ═══════
+function renderDTTOT(){
+  var dt=STORE.dttot;
+  var h='';
+  h+='<div class="sec-h"><span class="sec-lbl">DTTOT Update</span><span class="sec-line"></span></div>';
+  h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+  h+=kp('Total Recorded Names',String(dt.total_names),null);
+  h+=kp('Total Updates Received',String(dt.total_updates),null);
+  h+='</div>';
+  h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Updates over Time</div><div style="height:220px"><canvas id="dttot-bar"></canvas></div></div>';
+  h+='<div class="cd"><div class="cd-t">Recorded Names Trend</div><div style="height:220px"><canvas id="dttot-trend"></canvas></div></div></div>';
+  h+='<div style="margin-top:.65rem"></div><div class="cd"><div class="cd-t">DTTOT Log \u2014 All Records</div><table class="tb"><thead><tr><th>Email Date</th><th>DTTOT Number</th><th>Names</th></tr></thead><tbody>';
+  dt.rows.forEach(function(r){h+='<tr><td>'+r.email_date+'</td><td>'+r.dttot_number+'</td><td>'+r.recorded_names+'</td></tr>'});
+  h+='<tr class="tr"><td></td><td>Total</td><td>'+dt.total_names+'</td></tr></tbody></table></div>';
+  document.getElementById('dttot-content').innerHTML=h;
+  ensureDL();
+  allCharts.push(new Chart(document.getElementById('dttot-bar'),{type:'bar',data:{labels:dt.rows.map(function(r){return r.dttot_number}),datasets:[bds('Names',dt.rows.map(function(r){return r.recorded_names}),'#2196F3','#90CAF9')]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:Object.assign(axOpts(),{ticks:{stepSize:1}}),x:{grid:{display:false},ticks:{font:{size:7},color:'#6B7280',maxRotation:30}}},layout:{padding:{top:12}}}}));
+  // Cumulative trend
+  var cum=0,td=dt.rows.map(function(r){cum+=r.recorded_names;return{l:r.dttot_number,v:cum}});
+  allCharts.push(new Chart(document.getElementById('dttot-trend'),{type:'line',data:{labels:td.map(function(t){return t.l}),datasets:[lds('Cumulative',td.map(function(t){return t.v}),CL.blue)]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:{grid:{display:false},ticks:{font:{size:7},color:'#6B7280',maxRotation:30}}},layout:{padding:{right:32}}}}));
+}
+
+// ═══════ RENDER COMPARE ═══════
+function renderCompare(){
+  var a=document.getElementById('cmp-a').value,b=document.getElementById('cmp-b').value,sec=document.getElementById('cmp-section').value;
+  var da=STORE.data[a]||{},db=STORE.data[b]||{};
+  var h='<div class="cmp-wrap">';
+  h+='<div class="cmp-col"><h3>'+a+'</h3>'+cmpSec(da,a,sec)+'</div>';
+  h+='<div class="cmp-col b"><h3>'+b+'</h3>'+cmpSec(db,b,sec)+'</div>';
+  h+='</div>';
+  document.getElementById('cmp-content').innerHTML=h;
+}
+function cmpSec(d,l,sec){
+  var h='';
+  if(sec==='screening'){
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('Generated',fmt(N(d.rt_generated)),null);h+=kp('Closed',fmt(N(d.rt_closed)),null);
+    h+=kp('Closure Rate',fmtPct(N(d.closure_rate)),null);h+=kp('True Hits',fmt(N(d.true_hit_total)),null,{hl:true});
+    h+='</div>';
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('PEP',fmt(N(d.alert_pep)),null);h+=kp('Sanction',fmt(N(d.alert_sanction)),null);
+    h+=kp('Internal',fmt(N(d.alert_internal)),null);h+=kp('Multitype',fmt(N(d.alert_multitype)),null);
+    h+='</div>';
+    h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Individual</div><table class="tb"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>';
+    h+='<tr><td>False Hit</td><td>'+fmt(N(d.false_hit_indiv))+'</td></tr><tr><td>True Hit</td><td>'+fmt(N(d.true_hit_indiv))+'</td></tr><tr><td>Generated</td><td>'+fmt(N(d.indiv_generated))+'</td></tr></tbody></table></div>';
+    h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Entity</div><table class="tb"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>';
+    h+='<tr><td>False Hit</td><td>'+fmt(N(d.false_hit_entity))+'</td></tr><tr><td>True Hit</td><td>'+fmt(N(d.true_hit_entity))+'</td></tr><tr><td>Generated</td><td>'+fmt(N(d.entity_generated))+'</td></tr></tbody></table></div>';
+  } else if(sec==='batch'){
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('Generated',fmt(N(d.batch_generated)),null);h+=kp('Closed',fmt(N(d.batch_closed)),null);
+    h+=kp('True Hit',fmt(N(d.batch_th_total)),null,{hl:true});h+=kp('False Hit',fmt(N(d.batch_total_fh)),null);
+    h+='</div>';
+    h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
+    h+=kp('PEP',fmt(N(d.batch_th_pep)),null);h+=kp('Crime',fmt(N(d.batch_th_crime)),null);h+=kp('PEP/Crime',fmt(N(d.batch_th_pepcrime)),null);
+    h+='</div>';
+    // Scenario table
+    h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Detail</div><table class="tb"><thead><tr><th>Scenario</th><th>FH</th><th>TH</th></tr></thead><tbody>';
+    var sc=d.batch_scenarios||{};['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'].forEach(function(s){var v=sc[s];if(v)h+='<tr><td style="font-size:.6rem">'+s.replace('BATCH_','')+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td></tr>'});
+    h+='</tbody></table></div>';
+  } else if(sec==='remittance'){
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('Data Received',fmt(N(d.rem_data_received)),null);h+=kp('False Hit',fmt(N(d.rem_false_hit)),null);
+    h+=kp('True Hit',String(N(d.rem_true_hit)),null);h+=kp('Hit Rate',fmtPct(N(d.rem_hit_rate)),null);
+    h+='</div>';
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('Shop IDs',fmt(N(d.subm_shop_id)),null);h+=kp('Sub-M Hit',String(N(d.subm_total_hit)),null);
+    h+='</div>';
+  } else if(sec==='newsletter'){
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('Names',fmt(N(d.news_total)),null);h+=kp('Count',String(N(d.news_count)),null);h+=kp('Avg',String(N(d.news_avg)),null);
+    h+='</div>';
+    h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Log</div><table class="tb"><thead><tr><th>Date</th><th>Subject</th><th>Names</th></tr></thead><tbody>';
+    (d.news_rows||[]).forEach(function(r){h+='<tr><td style="font-size:.6rem">'+r.email_date+'</td><td style="font-size:.6rem">'+r.subject+'</td><td>'+r.recorded_names+'</td></tr>'});
+    h+='</tbody></table></div>';
+  }
+  return h;
+}
+
+function toggleDetail(id){var p=document.getElementById(id),ic=document.getElementById('icon-'+id);if(p)p.classList.toggle('open');if(ic)ic.classList.toggle('open')}
+function switchTabById(id){var items=document.querySelectorAll('.sb-item');for(var i=0;i<items.length;i++){var oc=items[i].getAttribute('onclick')||'';if(oc.indexOf("'"+id+"'")!==-1){switchTab(id,items[i]);return}}}
+
+function render(){
+  destroyCharts();
+  ['sel-month','sel-month-sc','sel-month-rem','sel-month-news','cmp-a','cmp-b'].forEach(buildSel);
+  ['fp-dash','fp-sc','fp-rem'].forEach(buildFilter);
+  var a=document.querySelector('.tab-page.on');if(!a)return;
+  var id=a.id.replace('tab-','');
+  if(id==='dashboard')renderDashboard();
+  else if(id==='screening')renderScreening();
+  else if(id==='remittance')renderRemittance();
+  else if(id==='newsletter')renderNewsletter();
+  else if(id==='dttot')renderDTTOT();
+  else if(id==='compare'){document.getElementById('cmp-content').innerHTML='<div class="placeholder">Compare \u2014 coming soon</div>'};
+}
+function switchTab(id,el){document.querySelectorAll('.sb-item').forEach(function(i){i.classList.remove('on')});el.classList.add('on');document.querySelectorAll('.tab-page').forEach(function(p){p.classList.remove('on')});document.getElementById('tab-'+id).classList.add('on');render();window.scrollTo({top:0,behavior:'smooth'})}
+function toggleSidebar(){var sb=document.getElementById('sidebar');sb.classList.toggle('collapsed');localStorage.setItem('sb_collapsed',sb.classList.contains('collapsed')?'1':'0')}
+document.addEventListener('DOMContentLoaded',function(){
+  if(localStorage.getItem('sb_collapsed')==='1'){var sb=document.getElementById('sidebar');if(sb)sb.classList.add('collapsed')}
+  var tip=document.getElementById('sb-float-tip'),hide;
+  document.querySelectorAll('.sb-item').forEach(function(item){var lbl=(item.querySelector('.sb-label')||{}).textContent||'';item.addEventListener('mouseenter',function(){var sb=document.getElementById('sidebar');if(!sb.classList.contains('collapsed'))return;clearTimeout(hide);var r=item.getBoundingClientRect();tip.textContent=lbl;tip.style.left='64px';tip.style.top=(r.top+r.height/2)+'px';tip.style.transform='translateY(-50%)';tip.classList.add('visible')});item.addEventListener('mouseleave',function(){hide=setTimeout(function(){tip.classList.remove('visible')},80)})});
+  document.addEventListener('click',function(e){document.querySelectorAll('.fd-panel.open').forEach(function(p){if(!e.target.closest('.fd-wrap'))p.classList.remove('open')})});
+  render();
+});
+
+function initBatchFilter(){var s=document.getElementById('batch-mf');if(!s)return;s.innerHTML='<option value="all">All Months</option>';getMonths().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)});s.onchange=function(){var mf=this.value;var scO=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];var ms2=mf==='all'?getMonths():[mf];var t='<table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';ms2.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var f=true;scO.forEach(function(n){var v=sc[n];if(v){t+="<tr><td>"+(f?shortMonth(m):"")+"</td><td style=\"text-align:left\">"+n+"</td><td>"+fmt(v.false_hit)+"</td><td>"+fmt(v.true_hit)+"</td><td>"+fmt(v.manually_closed)+"</td><td>"+fmt(v.automation_closed)+"</td><td>"+fmt(v.alert_generated)+"</td></tr>";f=false}})});t+="</tbody></table>";var parent=s.parentElement.parentElement;var existingTable=parent.querySelector("table");if(existingTable)existingTable.outerHTML=t}}
+</script>
+</body>
+</html>
