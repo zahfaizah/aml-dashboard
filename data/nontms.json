@@ -1,0 +1,341 @@
+{
+ "_meta": {
+  "team": "NON TMS",
+  "updated_at": "2026-10-01 14:15",
+  "updated_by": "Faizah Zahrani",
+  "source_file": "NON_TMS_Dashboard_Data_2026.xlsx",
+  "months": [
+   "January 2026",
+   "February 2026",
+   "March 2026",
+   "April 2026"
+  ]
+ },
+ "data": {
+  "escalation": {
+   "January 2026": {
+    "fcc": 565,
+    "risk_ops": 162,
+    "sanction": 604,
+    "total": 1331
+   },
+   "February 2026": {
+    "fcc": 685,
+    "risk_ops": 111,
+    "sanction": 1840,
+    "total": 2636
+   },
+   "March 2026": {
+    "fcc": 525,
+    "risk_ops": 128,
+    "sanction": 561,
+    "total": 1214
+   },
+   "April 2026": {
+    "fcc": 856,
+    "risk_ops": 77,
+    "sanction": 271,
+    "total": 1204
+   }
+  },
+  "by_user_type": {
+   "January 2026": {
+    "kyc": 1172,
+    "non_kyc": 72,
+    "merchant": 7,
+    "non_dana": 80,
+    "need_legal": 0,
+    "total": 1331,
+    "kyc_src": {
+     "FCC": 416,
+     "RiskOps": 154,
+     "Sanction": 602
+    },
+    "non_kyc_src": {
+     "FCC": 69,
+     "RiskOps": 1,
+     "Sanction": 2
+    },
+    "merchant_src": {
+     "FCC": 0,
+     "RiskOps": 7,
+     "Sanction": 0
+    },
+    "non_dana_src": {
+     "FCC": 80,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   },
+   "February 2026": {
+    "kyc": 2412,
+    "non_kyc": 133,
+    "merchant": 13,
+    "non_dana": 79,
+    "need_legal": 0,
+    "total": 2637,
+    "kyc_src": {
+     "FCC": 467,
+     "RiskOps": 108,
+     "Sanction": 1837
+    },
+    "non_kyc_src": {
+     "FCC": 132,
+     "RiskOps": 0,
+     "Sanction": 1
+    },
+    "merchant_src": {
+     "FCC": 8,
+     "RiskOps": 3,
+     "Sanction": 2
+    },
+    "non_dana_src": {
+     "FCC": 79,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   },
+   "March 2026": {
+    "kyc": 1050,
+    "non_kyc": 105,
+    "merchant": 7,
+    "non_dana": 52,
+    "need_legal": 0,
+    "total": 1214,
+    "kyc_src": {
+     "FCC": 370,
+     "RiskOps": 122,
+     "Sanction": 558
+    },
+    "non_kyc_src": {
+     "FCC": 103,
+     "RiskOps": 2,
+     "Sanction": 0
+    },
+    "merchant_src": {
+     "FCC": 3,
+     "RiskOps": 1,
+     "Sanction": 3
+    },
+    "non_dana_src": {
+     "FCC": 49,
+     "RiskOps": 3,
+     "Sanction": 0
+    }
+   },
+   "April 2026": {
+    "kyc": 954,
+    "non_kyc": 106,
+    "merchant": 2,
+    "non_dana": 142,
+    "need_legal": 0,
+    "total": 1204,
+    "kyc_src": {
+     "FCC": 612,
+     "RiskOps": 73,
+     "Sanction": 269
+    },
+    "non_kyc_src": {
+     "FCC": 102,
+     "RiskOps": 2,
+     "Sanction": 2
+    },
+    "merchant_src": {
+     "FCC": 0,
+     "RiskOps": 2,
+     "Sanction": 0
+    },
+    "non_dana_src": {
+     "FCC": 142,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   }
+  },
+  "decision_alert": {
+   "January 2026": {
+    "monitor": 801,
+    "utr": 290,
+    "reported": 229,
+    "data_provided": 11,
+    "under_review": 0,
+    "total": 1331,
+    "monitor_src": {
+     "FCC": 173,
+     "RiskOps": 38,
+     "Sanction": 590
+    },
+    "utr_src": {
+     "FCC": 157,
+     "RiskOps": 122,
+     "Sanction": 11
+    },
+    "reported_src": {
+     "FCC": 224,
+     "RiskOps": 2,
+     "Sanction": 3
+    },
+    "data_provided_src": {
+     "FCC": 11,
+     "RiskOps": 0,
+     "Sanction": 0
+    },
+    "under_review_src": {
+     "FCC": 0,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   },
+   "February 2026": {
+    "monitor": 1978,
+    "utr": 238,
+    "reported": 301,
+    "data_provided": 120,
+    "under_review": 0,
+    "total": 2637,
+    "monitor_src": {
+     "FCC": 160,
+     "RiskOps": 30,
+     "Sanction": 1788
+    },
+    "utr_src": {
+     "FCC": 134,
+     "RiskOps": 77,
+     "Sanction": 27
+    },
+    "reported_src": {
+     "FCC": 272,
+     "RiskOps": 4,
+     "Sanction": 25
+    },
+    "data_provided_src": {
+     "FCC": 120,
+     "RiskOps": 0,
+     "Sanction": 0
+    },
+    "under_review_src": {
+     "FCC": 0,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   },
+   "March 2026": {
+    "monitor": 763,
+    "utr": 188,
+    "reported": 171,
+    "data_provided": 92,
+    "under_review": 0,
+    "total": 1214,
+    "monitor_src": {
+     "FCC": 189,
+     "RiskOps": 39,
+     "Sanction": 535
+    },
+    "utr_src": {
+     "FCC": 78,
+     "RiskOps": 84,
+     "Sanction": 26
+    },
+    "reported_src": {
+     "FCC": 166,
+     "RiskOps": 5,
+     "Sanction": 0
+    },
+    "data_provided_src": {
+     "FCC": 92,
+     "RiskOps": 0,
+     "Sanction": 0
+    },
+    "under_review_src": {
+     "FCC": 0,
+     "RiskOps": 0,
+     "Sanction": 0
+    }
+   }
+  },
+  "utr": {
+   "January 2026": [
+    {
+     "category": "Online Gambling",
+     "count": 217
+    },
+    {
+     "category": "Narcotics",
+     "count": 30
+    },
+    {
+     "category": "Others",
+     "count": 23
+    },
+    {
+     "category": "Corruption",
+     "count": 8
+    },
+    {
+     "category": "Terrorism",
+     "count": 7
+    },
+    {
+     "category": "Aggravated Theft",
+     "count": 3
+    },
+    {
+     "category": "Fraud",
+     "count": 2
+    }
+   ],
+   "February 2026": [
+    {
+     "category": "Online Gambling",
+     "count": 164
+    },
+    {
+     "category": "Corruption",
+     "count": 24
+    },
+    {
+     "category": "Others",
+     "count": 21
+    },
+    {
+     "category": "Narcotics",
+     "count": 20
+    },
+    {
+     "category": "Fraud",
+     "count": 5
+    },
+    {
+     "category": "Aggravated Theft",
+     "count": 4
+    }
+   ],
+   "March 2026": [
+    {
+     "category": "Online Gambling",
+     "count": 67
+    },
+    {
+     "category": "Others",
+     "count": 31
+    },
+    {
+     "category": "Corruption",
+     "count": 8
+    },
+    {
+     "category": "Aggravated Theft",
+     "count": 4
+    },
+    {
+     "category": "Narcotics",
+     "count": 3
+    },
+    {
+     "category": "Terrorism",
+     "count": 3
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,8 @@
+# Raw Excel data stays on each PIC laptop - never uploaded
+*.xlsx
+~$*
+excel_paths.local.json
+
+# Local-only output
+preview.html
+__pycache__/

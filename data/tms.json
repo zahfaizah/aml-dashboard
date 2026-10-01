@@ -1,0 +1,873 @@
+{
+ "_meta": {
+  "team": "TMS",
+  "updated_at": "2026-10-01 14:15",
+  "updated_by": "Faizah Zahrani",
+  "source_file": "TMS_Dashboard_Data_2026.xlsx",
+  "months": [
+   "January 2026",
+   "February 2026",
+   "March 2026",
+   "April 2026",
+   "May 2026",
+   "June 2026",
+   "July 2026",
+   "August 2026"
+  ]
+ },
+ "data": {
+  "rekyc": {
+   "January 2026": {
+    "changed": 1,
+    "unchanged": 0,
+    "no_update": 7,
+    "revoked": 0,
+    "notes": "a. A total of 8 Re-KYC cases were recorded during January 2026.\nb. Most cases resulted in an Unchanged status, reflecting stable and valid customer information.\nc. Only 1 UID showed a status update, changing from Student to Employee."
+   },
+   "February 2026": {
+    "changed": 0,
+    "unchanged": 2,
+    "no_update": 9,
+    "revoked": 0,
+    "notes": "a. A total of 11 Re-KYC cases were recorded in February 2026.\nb. The majority of cases resulted in a “No Update” status, indicating that most customer information remained unchanged.\nc. Two UIDs were categorized as “Unchanged”, with the occupation status still recorded as Pelajar/Mahasiswa"
+   },
+   "March 2026": {
+    "changed": 2,
+    "unchanged": 1,
+    "no_update": 10,
+    "revoked": 0,
+    "notes": "a. A total of 10 Re-KYC cases were recorded during April 2026.\nb. Most cases resulted in an Unchanged status, reflecting stable and valid customer information.\nC. Only 2 UID showed a status update, changing from Student to Others and Unemployee to Pharmacist"
+   },
+   "April 2026": {
+    "changed": 1,
+    "unchanged": 5,
+    "no_update": 13,
+    "revoked": 0,
+    "notes": "a. A total of 19 Re-KYC cases were recorded during April 2026.\nb. Most cases resulted in an Unchanged status, reflecting stable and valid customer information.\nC. Only 1 UID showed a status update, changing from Unemployee to Accountant."
+   },
+   "May 2026": {
+    "changed": 1,
+    "unchanged": 5,
+    "no_update": 6,
+    "revoked": 0,
+    "notes": "a. 12 Re-KYC cases were recorded in May 2026.\nb. Most cases resulted in an Unchanged status, indicating stable and valid customer information.\nc. Only 1 UID had a status update, changing from Unemployed to Industry."
+   },
+   "June 2026": {
+    "changed": 3,
+    "unchanged": 6,
+    "no_update": 7,
+    "revoked": 0,
+    "notes": "a. 16 Re-KYC cases were recorded in June 2026.\nb. The majority resulted in an “Unchanged” status, indicating stable and valid customer information.\nc. 3 UIDs had status updates: Unemployed → Civil Servant, Student → Employee, and Student → Businessman."
+   },
+   "July 2026": {
+    "changed": 2,
+    "unchanged": 5,
+    "no_update": 11,
+    "revoked": 1,
+    "notes": "a. 19 Re-KYC cases were recorded in July 2026.\nb. The majority resulted in an “Unchanged” status, indicating stable and valid customer information.\nc. 2 UIDs had status updates: Unemployed → Day laborer and Student → Driver"
+   },
+   "August 2026": {
+    "changed": 0,
+    "unchanged": 2,
+    "no_update": 3,
+    "revoked": 0,
+    "notes": "a. 5 Re-KYC cases were recorded in August 2026.\nb. The majority resulted in an “Unchanged” status, indicating stable and valid customer information.\nc. 2 UIDs had no updated information, with their occupations remaining as Student and Housewife."
+   }
+  },
+  "rfi_user": {
+   "January 2026": {
+    "answer": 0,
+    "uncontactable": 186,
+    "on_process": 0,
+    "notes": "a. 182 requests were sent through Push Notification DIANA (uncontactable)\nb. 4 requests were sent through Kapture as the B1–B3 automation journey for confirming users’ specific incoming and outgoing transactions is still being developed by the Customer Care team."
+   },
+   "February 2026": {
+    "answer": 1,
+    "uncontactable": 170,
+    "on_process": 0,
+    "notes": "a. 171 RFIs were sent to users categorized as Uncontactable in February 2026.\nb. 169 requests were sent via DIANA Push Notifications, and 2 via Kapture.\nc. The B1–B3 automation journey is still under development.\nOnly 1 RFI has received a successful response, via Kapture."
+   },
+   "March 2026": {
+    "answer": 0,
+    "uncontactable": 231,
+    "on_process": 0,
+    "notes": "a. 228 requests were sent through Push Notification DIANA.\nB. 3 requests were sent through Kapture"
+   },
+   "April 2026": {
+    "answer": 1,
+    "uncontactable": 299,
+    "on_process": 0,
+    "notes": "a. 300 RFIs were sent to users in Apr 2026\nb. 299 requests were sent through Push Notification DIANA.\nc. 4 requests were sent through Kapture, and 1 of them was answered by the user."
+   },
+   "May 2026": {
+    "answer": 1,
+    "uncontactable": 3383,
+    "on_process": 0,
+    "notes": "3,384 RFIs were sent to users via DIANA from the TMS source, reflecting a significant increase due to a new investigation approach; 1 RFI was successfully responded to by the user."
+   },
+   "June 2026": {
+    "answer": 0,
+    "uncontactable": 4603,
+    "on_process": 0,
+    "notes": "A total of 4,603 requests were sent through Push Notification DIANA; however, none of the requests were successfully delivered, resulting in a 0% success rate."
+   },
+   "July 2026": {
+    "answer": 4,
+    "uncontactable": 3520,
+    "on_process": 0,
+    "notes": "A total of 3,524 requests were sent through Push Notification DIANA, with 4 requests successfully answered by the users, resulting in a 0.11% success rate."
+   },
+   "August 2026": {
+    "answer": 3,
+    "uncontactable": 3435,
+    "on_process": 0,
+    "notes": "A total of 3,438 requests were sent through Push Notification DIANA, with 3 requests successfully answered by the users, resulting in a 0.11% success rate."
+   }
+  },
+  "rfi_kyb": {
+   "January 2026": {
+    "success": 86,
+    "failed": 6,
+    "on_process": 24,
+    "notes": "a. In January 2026, a total of 116 RFIs were sent to KYB owners by the Merchant Report team.\nb. As agreed in the ‘EDD Alignment meeting for DANA Bisnis’ on 29/01/2026, all RFIs from the AML Ops team will be whitelisted by the Merchant Report team. The AML Ops team is responsible for verifying whether the results are valid/successful or failed."
+   },
+   "February 2026": {
+    "success": 22,
+    "failed": 5,
+    "on_process": 13,
+    "notes": "a. 40 KYB RFIs were sent to users in Feb 2026.\nb. 22 RFIs validated with matching product/store photos in Back Office (EDD Success)\nc. 13 RFIs are still in progress and under periodic monitoring."
+   },
+   "March 2026": {
+    "success": 31,
+    "failed": 21,
+    "on_process": 28,
+    "notes": "80 KYB RFIs were sent to users in March 2026.\n31 RFIs validated with matching product/store photos in Back Office (EDD Success)\n28 RFIs are still in progress and under periodic monitoring\n21 are failed with majority reasons: no photo of owner with products & The photo of the owner and the product aligned"
+   },
+   "April 2026": {
+    "success": 11,
+    "failed": 1,
+    "on_process": 44,
+    "notes": "56 KYB RFIs were sent to users in April 2026.\n11 RFIs were successfully answered, while 1 RFI failed due to there's no a photo of the owner with the store.\n44 RFIs are still in progress and under periodic monitoring."
+   },
+   "May 2026": {
+    "success": 14,
+    "failed": 5,
+    "on_process": 531,
+    "notes": "550 KYB RFIs were sent to users in May 2026. Of these, 14 were successfully answered, while 5 failed due to non-compliant submissions (video format issues, missing owner/store photos, and MCC mismatches). The remaining 531 RFIs are still in progress due to a quota limitation on the Risk platform, which restricts the number of RFIs that can be sent."
+   },
+   "June 2026": {
+    "success": 0,
+    "failed": 0,
+    "on_process": 1,
+    "notes": "1 KYB RFI was recorded for June 2026 and remains in progress under periodic monitoring. The June RFI list was pooled and sent on July 1, 2026."
+   },
+   "July 2026": {
+    "success": 19,
+    "failed": 9,
+    "on_process": 126,
+    "notes": "A total of 154 KYB RFIs were recorded in July 2026, with 19 RFIs successfully answered and 9 failed, resulting in a 12.34% success rate."
+   },
+   "August 2026": {
+    "success": 5,
+    "failed": 1,
+    "on_process": 2002,
+    "notes": "A total of 2,008 KYB RFIs were recorded in August 2026, with 5 RFIs successfully answered and 1 failed, resulting in a 0.25% success rate."
+   }
+  },
+  "rfi_merchant": {
+   "August 2026": {
+    "success": 3,
+    "failed": 4,
+    "on_process": 0,
+    "notes": "A total of 7 Merchant RFIs were recorded in August 2026, with 3 successfully answered and 4 resulting in uncontactable customers, achieving a 42.86% success rate."
+   }
+  },
+  "risknotes": {
+   "January 2026": {
+    "uid": 96,
+    "utr": 20,
+    "reported_case": 0,
+    "notes": "A total of 20 UTRs from 96 UIDs were reported in January 2026, related to Structuring and Indications of Online Gambling typologies"
+   },
+   "February 2026": {
+    "uid": 72,
+    "utr": 19,
+    "reported_case": 28,
+    "notes": "19 UTRs from 72 UIDs were reported in January 2026, related to Structuring activities and indications of Online Gambling typologies.\n28 UIDs were closed as “Reported”, as they had already been previously escalated."
+   },
+   "March 2026": {
+    "uid": 135,
+    "utr": 20,
+    "reported_case": 8,
+    "notes": "20 UTRs from 135 UIDs were reported in March 2026, related to Structuring activities and indications of Online Gambling typologies.\n8 UIDs were closed as “Reported”, as they had already been previously escalated."
+   },
+   "April 2026": {
+    "uid": 93,
+    "utr": 16,
+    "reported_case": 6,
+    "notes": "16 UTRs from 93 UIDs were reported in April 2026, related to Structuring activities and indications of Online Gambling typologies.\n6 UIDs were closed as “Reported”, as they had already been previously escalated."
+   },
+   "May 2026": {
+    "uid": 32,
+    "utr": 13,
+    "reported_case": 16,
+    "notes": "a. 13 UTRs (32 UIDs) were reported in May 2026: 5 related to Structuring & Online Gambling, and 8 related to Structuring & Unsatisfactory KYC – Fake ID.\nB. 16 UIDs were closed as \"Reported\" as they had been previously escalated."
+   },
+   "June 2026": {
+    "uid": 16,
+    "utr": 9,
+    "reported_case": 15,
+    "notes": "9 UTRs involving 16 UIDs were reported in June 2026, related to Structuring and Online Gambling typologies. 15 additional UIDs were closed as “Reported” due to previous escalation."
+   },
+   "July 2026": {
+    "uid": 18,
+    "utr": 10,
+    "reported_case": 22,
+    "notes": "10 UTRs involving 18 UIDs were reported in July 2026, related to Structuring and Unsatisfactory KYC - Fake ID typologies. 22 additional UIDs were closed as “Reported” due to previous escalation."
+   },
+   "August 2026": {
+    "uid": 9,
+    "utr": 6,
+    "reported_case": 12,
+    "notes": "6 UTRs involving 9 UIDs were reported in Aug 2026, related to Structuring and Unsatisfactory KYC - Fake ID typologies. 12 additional UIDs were closed as “Reported” due to previous escalation."
+   }
+  },
+  "p2p": {
+   "January 2026": {
+    "uid": 21,
+    "utr": 12,
+    "notes": "A total of 12 UTRs from 21 UIDs were reported in January 2026, with the majority typologies of: Structuring and Abnormal Transactions."
+   },
+   "February 2026": {
+    "uid": 27,
+    "utr": 11,
+    "notes": "11 UTRs across 27 UIDs were reported in February 2026.\nThe dominant typologies identified were Structuring and Abnormal Transactions."
+   },
+   "March 2026": {
+    "uid": 33,
+    "utr": 12,
+    "notes": "12 UTRs across 33 UIDs were reported in March 2026.\nThe dominant typologies identified were Structuring and Abnormal Transactions."
+   },
+   "April 2026": {
+    "uid": 18,
+    "utr": 10,
+    "notes": "10 UTRs across 18 UIDs were reported in April 2026.\nThe dominant typologies identified were Structuring and Unsatisfactory KYC"
+   },
+   "May 2026": {
+    "uid": 19,
+    "utr": 8,
+    "notes": "8 UTRs covering 19 UIDs were reported in May 2026, with Structuring and Unsatisfactory KYC - Fake ID identified as the predominant typologies."
+   },
+   "June 2026": {
+    "uid": 31,
+    "utr": 8,
+    "notes": "8 UTRs involving 31 UIDs were reported in June 2026.\nThe dominant typologies identified were Structuring and Abnormal Transactions."
+   },
+   "July 2026": {
+    "uid": 30,
+    "utr": 8,
+    "notes": "In July 2026, a total of 8 UTRs involving 30 UIDs were reported, with Structuring and Unsatisfactory KYC – Fake ID identified as the dominant typologies."
+   },
+   "August 2026": {
+    "uid": 19,
+    "utr": 8,
+    "notes": "In August 2026, a total of 8 UTRs involving 19 UIDs were reported, with Structuring and Unsatisfactory KYC – Fake ID identified as the dominant typologies."
+   }
+  },
+  "anomaly": {
+   "May 2026": {
+    "uid": 342,
+    "utr": 7,
+    "reported": 14,
+    "monitored_fv": 219,
+    "notes": "total of 7 UTRs involving 342 UIDs were reported in May 2026, primarily related to Structuring, Unsatisfactory KYC – Fake ID, and Transactions at Unusual Hours. In addition, 219 UIDs are currently undergoing Face Verification."
+   },
+   "June 2026": {
+    "uid": 7,
+    "utr": 5,
+    "reported": 2,
+    "monitored_fv": 18,
+    "notes": "A total of 5 UTRs involving 7 UIDs were reported in June 2026, primarily related to Structuring, Unsatisfactory KYC – Fake ID, and Transactions at Unusual Hours."
+   },
+   "July 2026": {
+    "uid": 16,
+    "utr": 7,
+    "reported": 1,
+    "monitored_fv": 34,
+    "notes": "A total of 7 UTRs involving 16 UIDs were reported in July 2026, primarily related to Structuring, Unsatisfactory KYC – Fake ID, and Transactions at Unusual Hours."
+   },
+   "August 2026": {
+    "uid": 4,
+    "utr": 4,
+    "reported": 1,
+    "monitored_fv": 11,
+    "notes": "A total of 4 UTRs involving 4 UIDs were reported in August 2026, primarily related to Structuring and Unsatisfactory KYC – Fake ID"
+   }
+  },
+  "faceverif": {
+   "May 2026": {
+    "uid": 2162,
+    "source": "TMS - RFI",
+    "notes": "A total of 2,162 UIDs were referred by Notion to the Risk Team for Face Verification following uncontactable RFI results in May 2026; the process is currently ongoing."
+   },
+   "June 2026": {
+    "uid": 4393,
+    "source": "a. TMS - RFI\nb. KYC Spike\nc.TMS - Cambodia P1 & P2",
+    "notes": "A total of 4,393 UIDs were referred to the Risk Team via Notion for Face Verification in June 2026, following uncontactable RFI results, KYC Spike, and TMS – Cambodia P1 & P2 cases. The process is currently ongoing."
+   },
+   "July 2026": {
+    "uid": 4703,
+    "source": "a. TMS - RFI\nb. Risk - RFI \nc.TMS - Owner of Top 100 Historical EMI-KYB Alert",
+    "notes": "A total of 4,703 UIDs were referred to the Risk Team via Notion for Face Verification in July 2026, following uncontactable RFI results, and TTMS - Owner of Top 100 Historical EMI-KYB Alert. The process is currently ongoing."
+   },
+   "August 2026": {
+    "uid": 15566,
+    "source": "a. TMS - RFI\nb. TMS - Cambodia Aug 2026\nc. TMS - Cambodia Jul 2026\nd. TMS - Owner of Top 100 Historical EMI-KYB Alert\ne. Cyber Patrol Network Online Gambling",
+    "notes": "15,566 UIDs were referred to the Risk Team for Face Verification in August 2026 from TMS-RFI, Cambodia July & August 2026, Cyber Patrol Network Online Gambling, and Top 100 Historical EMI-KYB Alerts. The process is currently ongoing."
+   }
+  },
+  "dormant": {
+   "January 2026": {
+    "monitored": 57,
+    "uid": 57,
+    "utr": 0,
+    "notes": "In January 2026, a total of 57 UIDs were identified as matching the Dormant parameter.\nNone of these were reported as UTRs, as no suspected money laundering indicators were identified"
+   },
+   "February 2026": {
+    "monitored": 76,
+    "uid": 76,
+    "utr": 0,
+    "notes": "76 UIDs were identified as meeting the Dormant parameter in February 2026.\nNo UTRs were filed, as no suspicious money laundering indicators were identified."
+   },
+   "March 2026": {
+    "monitored": 64,
+    "uid": 65,
+    "utr": 1,
+    "notes": "65 UIDs were identified as meeting the Dormant parameter in March 2026.\n1 UTR"
+   },
+   "April 2026": {
+    "monitored": 48,
+    "uid": 48,
+    "utr": 0,
+    "notes": "48 UIDs were identified as meeting the Dormant parameter in April 2026."
+   },
+   "May 2026": {
+    "monitored": 48,
+    "uid": 48,
+    "utr": 0,
+    "notes": "A total of 48 UIDs were identified as meeting the Dormant parameter in May 2026."
+   },
+   "June 2026": {
+    "monitored": 47,
+    "uid": 15,
+    "utr": 6,
+    "notes": "A total of 62 UIDs were identified as meeting the Dormant parameter in June 2026. Of these, 6 UTRs involving 15 UIDs were created, primarily related to Structuring and Unsatisfactory KYC – Fake ID typologies."
+   },
+   "July 2026": {
+    "monitored": 64,
+    "uid": 5,
+    "utr": 5,
+    "notes": "A total of 72 UIDs were identified as meeting the Dormant parameters in July 2026. Of these, 5 UTRs involving 5 UIDs were created, primarily related to Structuring and Unsatisfactory KYC – Fake ID typologies. The remaining 64 UIDs were monitored, while 3 UIDs were closed as reported."
+   },
+   "August 2026": {
+    "monitored": 69,
+    "uid": 5,
+    "utr": 3,
+    "notes": "A total of 74 UIDs were identified as meeting the Dormant parameters in August 2026. Of these, 3 UTRs involving 5 UIDs were created, primarily related to Structuring and Unsatisfactory KYC – Fake ID typologies. The remaining 69 UIDs were monitored."
+   }
+  },
+  "merchant": {
+   "January 2026": {
+    "alerts": 0,
+    "notes": ""
+   },
+   "February 2026": {
+    "alerts": 3,
+    "notes": ""
+   },
+   "March 2026": {
+    "alerts": 8,
+    "notes": "a. Shop names containing the word “BANDAR” have reappeared, including “Bandar Djakarta” and several Alfamart branches.\nB. All finding have been informed to Mas Cahya, and the merchants have been whitelisted"
+   },
+   "April 2026": {
+    "alerts": 0,
+    "notes": "There were 0 Merchant Screening Name alerts generated in April 2026, as notifications had been sent to the Risk Ops Team to whitelist merchants containing the word “BANDAR”."
+   },
+   "May 2026": {
+    "alerts": 0,
+    "notes": "No Merchant Screening Name alerts were generated in May 2026."
+   },
+   "June 2026": {
+    "alerts": 0,
+    "notes": "No Merchant Screening Name alerts were generated in June 2026."
+   },
+   "July 2026": {
+    "alerts": 0,
+    "notes": "No Merchant Screening Name alerts were generated in July 2026."
+   },
+   "August 2026": {
+    "alerts": 0,
+    "notes": "No Merchant Screening Name alerts were generated in August 2026."
+   }
+  },
+  "tms": {
+   "January 2026": {
+    "alerts": 35479,
+    "monitored": 33026,
+    "issue": 2453,
+    "notes": "a. In January 2026, a total of 97 non-automation UTRs were submitted to FCC.\nb. The majority of detection scenarios were generated from ETO-M, totaling 81 use cases.\nc. 25 UTRs were related to typologies such as Structuring, Unsatisfactory KYC, Out-of-Profile Transactions, and Transactions at Unusual Hours."
+   },
+   "February 2026": {
+    "alerts": 30923,
+    "monitored": 28527,
+    "issue": 2396,
+    "notes": "a. 118 non-automation UTRs were submitted to FCC in Feb 2026.\nb. 3 alerts were closed as Reported.\nc. 3 alerts were closed as Monitored.\nd. Most detection scenarios came from ETO-M (76 cases) and ETI-W (11 cases)."
+   },
+   "March 2026": {
+    "alerts": 27770,
+    "monitored": 27265,
+    "issue": 505,
+    "notes": "a. 197 non-automation UTRs were submitted to FCC in Mar 2026.\nb. Most detection scenarios came from ETO-M (43 cases) and ETI-M (143 cases).\nc. Based on confirmation from Mas Arief [Automation team], the ETI-M alerts of March 2026 were identified as invalid closed\nalerts flagging by Automation.\nd. Next Innitiative: Face verification will be implemented for users in DIANA with an uncontactable status and those already reported as UTR."
+   },
+   "April 2026": {
+    "alerts": 33417,
+    "monitored": 33045,
+    "issue": 372,
+    "notes": "a. 216 non-automation UTRs were submitted to FCC in Mar 2026.\nb. Most detection scenarios came from ETO-M (83 cases) and ETI-M (187 cases)."
+   },
+   "May 2026": {
+    "alerts": 45784,
+    "monitored": 41715,
+    "issue": 3956,
+    "notes": "a. A total of 3,956 UIDs were closed as issues through both automated and manual review processes. Subsequently, 22 UTRs were raised, covering 2,741 UIDs.\nb. A significant increase in Fake ID alerts required additional investigation and validation efforts, resulting in the escalation of multiple UTRs to the FCC Department.\nc. The reports were simplified by reducing the number of escalated from 2.731 users to 12 UTRs submitted to the FCC Dept due to Unsatisfactory KYC-Fake ID."
+   },
+   "June 2026": {
+    "alerts": 47924,
+    "monitored": 43436,
+    "issue": 3107,
+    "notes": "a. A total of 47,924 alerts were created in TMS in June 2026, resulting in 20 non-automated UTRs involving 1,794 UIDs being submitted to the FCC.\nb. Of these, 1,777 UIDs were reported as UTR Fake ID cases, with ETI-M being the most frequently detected scenario."
+   },
+   "July 2026": {
+    "alerts": 51566,
+    "monitored": 47981,
+    "issue": 3585,
+    "notes": "a. A total of 51,566 alerts were created in TMS in July 2026, resulting in 23 non-automated UTRs involving 1,208 UIDs being submitted to the FCC.\nb. Of these, 1,188 UIDs were reported as UTR Fake ID cases, with ETI-M being the most frequently detected scenario."
+   },
+   "August 2026": {
+    "alerts": 19094,
+    "monitored": 15432,
+    "issue": 3662,
+    "notes": "a. A total of 19,094 alerts were created in TMS in August 2026, resulting in 71 non-automated UTRs involving 1,288 UIDs being submitted to the FCC.\nb. Of these, 1,222 UIDs were reported as UTR Fake ID cases, with ETI-M being the most frequently detected scenario."
+   }
+  },
+  "unmask": {
+   "January 2026": {
+    "sources": [
+     {
+      "source": "Densus 88 Request",
+      "uid": 5,
+      "receivers": 26
+     },
+     {
+      "source": "PPATK Request",
+      "uid": 7,
+      "receivers": 131
+     }
+    ],
+    "uid_total": 12,
+    "recv_total": 157,
+    "notes": ""
+   },
+   "February 2026": {
+    "sources": [
+     {
+      "source": "Densus 88 Request",
+      "uid": 15,
+      "receivers": 93
+     },
+     {
+      "source": "PPATK Request",
+      "uid": 2,
+      "receivers": 2
+     }
+    ],
+    "uid_total": 17,
+    "recv_total": 95,
+    "notes": ""
+   },
+   "March 2026": {
+    "sources": [
+     {
+      "source": "PPATK Request",
+      "uid": 3,
+      "receivers": 7
+     },
+     {
+      "source": "Risk Case",
+      "uid": 1,
+      "receivers": 3
+     }
+    ],
+    "uid_total": 4,
+    "recv_total": 10,
+    "notes": ""
+   },
+   "April 2026": {
+    "sources": [
+     {
+      "source": "PPATK Request",
+      "uid": 2,
+      "receivers": 3
+     },
+     {
+      "source": "Risk Case",
+      "uid": 1,
+      "receivers": 1
+     }
+    ],
+    "uid_total": 3,
+    "recv_total": 4,
+    "notes": ""
+   },
+   "May 2026": {
+    "sources": [],
+    "uid_total": 0,
+    "recv_total": 0,
+    "notes": "No Unmasking Requests were submitted to the Data Team during May 2026."
+   },
+   "June 2026": {
+    "sources": [],
+    "uid_total": 0,
+    "recv_total": 0,
+    "notes": "No unmasking requests were submitted to the DATA Team in June 2026, as all receiver account number details had been available in the AML Fund table since June 9, 2026."
+   },
+   "July 2026": {
+    "sources": [],
+    "uid_total": 0,
+    "recv_total": 0,
+    "notes": "No unmasking requests were submitted to the DATA Team in July 2026, as all receiver account number details had been available in the AML Fund table since June 9, 2026."
+   }
+  },
+  "cs": {
+   "January 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Different Username",
+      "number": 2,
+      "action": "Done"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 81,
+      "action": "Revoked"
+     },
+     {
+      "category": "Others",
+      "remarks": "Selfie Fraudster",
+      "number": 4,
+      "action": "Revoked"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "The ID card photo is different from the selfie",
+      "number": 1,
+      "action": "Revoked"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 2,
+     "Fake ID Card": 81,
+     "Others": 4,
+     "Photo Issue": 1
+    },
+    "total": 88
+   },
+   "February 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "a. Different User Name\nb. Name Typo",
+      "number": 4,
+      "action": "Done"
+     },
+     {
+      "category": "Fake ID Card",
+      "remarks": "Fake ID Card",
+      "number": 58,
+      "action": "Revoked"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP On Screen",
+      "number": 1,
+      "action": "Revoked"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 4,
+     "Fake ID Card": 58,
+     "Photo Issue": 1
+    },
+    "total": 63
+   },
+   "March 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Different User Name",
+      "number": 1,
+      "action": "Done"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake ID Card",
+      "number": 92,
+      "action": "Revoked"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP On Screen",
+      "number": 1,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 1,
+     "Fake ID Card": 92,
+     "Photo Issue": 1
+    },
+    "total": 94
+   },
+   "April 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Different Occupation",
+      "number": 1,
+      "action": "Done"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "Different Username",
+      "number": 2,
+      "action": "Done"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "The KYC data is inconsistent with ID card",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 88,
+      "action": "Revoked"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 4,
+     "Fake ID Card": 88
+    },
+    "total": 92
+   },
+   "May 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "KTP on Screen",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "Printed KTP",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "The KYC data is inconsistent with ID card",
+      "number": 2,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 179,
+      "action": "KTP still valid, no need to be changed as confirmed by Chatarina through ding"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 2041,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 32,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP Blur",
+      "number": 1,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP on Screen",
+      "number": 1,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 4,
+     "Fake ID Card": 2252,
+     "Photo Issue": 2
+    },
+    "total": 2258
+   },
+   "June 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Different Username",
+      "number": 1,
+      "action": "Done"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 17,
+      "action": "KTP still valid, no need to be changed as confirmed by CS Team"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 2554,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 12,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP On Screen",
+      "number": 1,
+      "action": "Revoked"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 2,
+     "Fake ID Card": 2583,
+     "Photo Issue": 1
+    },
+    "total": 2586
+   },
+   "July 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Fotocopy KTP",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 5,
+      "action": "KTP still valid, no need to be changed as confirmed by CS through ding"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 1144,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 15,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 41,
+      "action": "The user has been revoked, so no action is required from the CS team"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 1,
+     "Fake ID Card": 1205
+    },
+    "total": 1206
+   },
+   "August 2026": {
+    "rows": [
+     {
+      "category": "Data Issue",
+      "remarks": "Different Username",
+      "number": 1,
+      "action": "Done"
+     },
+     {
+      "category": "Data Issue",
+      "remarks": "",
+      "number": 1,
+      "action": "KTP still valid, no need to be changed as confirmed by CS through ding"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "Fake Id Card",
+      "number": 7,
+      "action": "KTP still valid, no need to be changed as confirmed by CS through ding"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 1099,
+      "action": "Revoked"
+     },
+     {
+      "category": "Fake Id Card",
+      "remarks": "",
+      "number": 31,
+      "action": "The user was not revoked due to having associated assets as confirmed by CS through ding"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "KTP on Screen",
+      "number": 1,
+      "action": "Revoked"
+     },
+     {
+      "category": "Photo Issue",
+      "remarks": "Pas foto KTP",
+      "number": 1,
+      "action": "Revoked"
+     }
+    ],
+    "by_category": {
+     "Data Issue": 2,
+     "Fake ID Card": 1137,
+     "Photo Issue": 2
+    },
+    "total": 1141
+   }
+  }
+ }
+}
