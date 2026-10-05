@@ -31,7 +31,11 @@ except ImportError as e:
     sys.exit(1)
 
 # ─── CONFIG ───────────────────────────────────────────────
-ROOT = os.path.dirname(os.path.abspath(__file__))
+# HERE = the folder this script runs from (your Excels live here).
+# REPO = the GitHub folder (data/, template, index.html). Usually the same folder;
+# a PIC may also run a copy of this script from their own work folder, e.g.
+# OneDrive, and the script then uses the GitHub folder in Documents.
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Each team's Excel file. The script looks for it next to this script, unless
 # excel_paths.local.json (not uploaded to GitHub) points somewhere else, e.g.
@@ -44,8 +48,23 @@ TEAMS = {
     # Team 3: TMS (all sub-pages)
     'tms':      {'label': 'TMS',      'excel': 'TMS_Dashboard_Data_2026.xlsx'},
 }
-LOCAL_PATHS_FILE = os.path.join(ROOT, 'excel_paths.local.json')
-DATA_DIR = os.path.join(ROOT, 'data')
+LOCAL_PATHS_FILE = os.path.join(HERE, 'excel_paths.local.json')
+
+
+def _find_repo():
+    if os.path.isdir(os.path.join(HERE, '.git')):
+        return HERE
+    try:
+        with open(LOCAL_PATHS_FILE, encoding='utf-8') as f:
+            custom = json.load(f).get('repo')
+        if custom: return custom
+    except (OSError, ValueError):
+        pass
+    return os.path.join(os.path.expanduser('~'), 'Documents', 'aml-dashboard')
+
+
+REPO = _find_repo()
+DATA_DIR = os.path.join(REPO, 'data')
 
 # TMS → RFI Merchant: sheet inside the TMS Excel, same columns as the 'RFI KYB' sheet
 #   Month | Success | Failed | On Process | Additional Notes
@@ -53,8 +72,11 @@ DATA_DIR = os.path.join(ROOT, 'data')
 RFI_MERCHANT_SHEET = "RFI Merchant"
 
 # Template and output (index.html is what GitHub Pages serves)
-TEMPLATE_FILE  = os.path.join(ROOT, "AML_Dashboard_template.html")
-OUTPUT_FILE    = os.path.join(ROOT, "index.html")
+TEMPLATE_FILE  = os.path.join(REPO, "AML_Dashboard_template.html")
+OUTPUT_FILE    = os.path.join(REPO, "index.html")
+# When run from a work folder outside the repo, the latest dashboard is also
+# copied there under this name so it can be opened from that folder.
+LOCAL_COPY_NAME = "AML_Dashboard.html"
 
 # "latest" = auto-detect, or set e.g. "April 2026"
 HIGHLIGHT_MONTH = "latest"
@@ -1001,7 +1023,7 @@ def excel_path(team):
         except ValueError as e:
             print(f"ERROR: {os.path.basename(LOCAL_PATHS_FILE)} is not valid JSON ({e}).")
             sys.exit(1)
-    return os.path.join(ROOT, TEAMS[team]['excel'])
+    return os.path.join(HERE, TEAMS[team]['excel'])
 
 
 def read_team(team, path):
@@ -1136,7 +1158,7 @@ def build(fresh, out_path):
     store = build_store(teams_data)
     write_dashboard(store, out_path)
     print(f"\nHighlight month: {store['highlight']}")
-    print(f"Built {os.path.relpath(out_path, ROOT)} ({os.path.getsize(out_path) / 1024:.0f} KB)")
+    print(f"Built {out_path} ({os.path.getsize(out_path) / 1024:.0f} KB)")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -1148,7 +1170,7 @@ PAGES_URL = "https://zahfaizah.github.io/aml-dashboard/"
 
 def git(*args, check=True):
     try:
-        r = subprocess.run(['git', *args], cwd=ROOT, capture_output=True,
+        r = subprocess.run(['git', *args], cwd=REPO, capture_output=True,
                            text=True, encoding='utf-8', errors='replace')
     except FileNotFoundError:
         print("ERROR: git is not installed (or not on PATH). See README.md -> Setup.")
@@ -1161,7 +1183,7 @@ def git(*args, check=True):
 
 def git_user():
     try:
-        name = subprocess.run(['git', 'config', 'user.name'], cwd=ROOT, capture_output=True,
+        name = subprocess.run(['git', 'config', 'user.name'], cwd=REPO, capture_output=True,
                               text=True, encoding='utf-8', errors='replace').stdout.strip()
     except FileNotFoundError:
         name = ''
@@ -1192,30 +1214,87 @@ def answer_yes(question, default_yes):
     return default_yes if not a else a in ('y', 'yes')
 
 
+def month_slice(team, payload, month):
+    """Everything a team has for one month (to compare old vs new)."""
+    if team == 'sanction':
+        return payload.get('data', {}).get(month)
+    return {k: v.get(month) for k, v in payload.items() if isinstance(v, dict)}
+
+
 def stale_check(team, payload):
     """Stop a PIC from publishing an older Excel over newer published data."""
     doc = load_team_file(team)
     if not doc: return
+    meta = doc.get('_meta', {})
     old = set(team_months(team, doc['data']))
     new = set(team_months(team, payload))
     lost = sorted(old - new, key=month_sort_key)
-    if not lost: return
-    meta = doc.get('_meta', {})
-    print(f"\n  WARNING: {TEAMS[team]['label']} data on GitHub has months your Excel doesn't:")
-    print(f"    {', '.join(lost)}")
-    print(f"    (published {meta.get('updated_at', '?')} by {meta.get('updated_by', '?')})")
-    print("    Your Excel may be an older copy. Publishing would remove those months.")
+    # Someone else published this team last: also flag months whose numbers would change
+    changed = []
+    if meta.get('updated_by') and meta.get('updated_by') != git_user():
+        fresh = json.loads(json.dumps(payload))   # same shape as the JSON file
+        changed = [m for m in sorted(old & new, key=month_sort_key)
+                   if month_slice(team, fresh, m) != month_slice(team, doc['data'], m)]
+    if not lost and not changed: return
+    print(f"\n  WARNING: {TEAMS[team]['label']} was last published "
+          f"{meta.get('updated_at', '?')} by {meta.get('updated_by', '?')}.")
+    if lost:
+        print(f"    Months on GitHub that your Excel doesn't have: {', '.join(lost)}")
+    if changed:
+        print(f"    Months where your numbers differ from theirs:  {', '.join(changed)}")
+    print("    Your Excel may be an older copy. Publishing would replace their data.")
     if not answer_yes("  Publish anyway?", default_yes=False):
         print("Cancelled - nothing was changed."); sys.exit(1)
 
 
+def _same_folder(a, b):
+    return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
+
+
+def sync_work_folder():
+    """Running from a work folder outside the repo (e.g. OneDrive): keep this
+    folder's script and template the same as the published ones."""
+    if _same_folder(HERE, REPO): return
+    for name in ('generate_dashboard.py', 'AML_Dashboard_template.html'):
+        src, dst = os.path.join(REPO, name), os.path.join(HERE, name)
+        if not os.path.exists(src): continue
+        with open(src, 'rb') as f: new = f.read().replace(b'\r\n', b'\n')
+        old = None
+        if os.path.exists(dst):
+            with open(dst, 'rb') as f: old = f.read().replace(b'\r\n', b'\n')
+        if old == new: continue
+        if old is not None and name.endswith('.html'):
+            backup = dst.replace('.html', '_backup.html')
+            with open(backup, 'wb') as f: f.write(old)
+            print(f"  NOTE: {name} here was different from the published one; saved it as "
+                  f"{os.path.basename(backup)}. Design changes go in {src}")
+        with open(dst, 'wb') as f: f.write(new)
+        if name.endswith('.py'):
+            print(f"\nThe dashboard script was updated (copied from {REPO}). Please run the bat again.")
+            sys.exit(1)
+
+
+def copy_to_work_folder():
+    """Also put the latest dashboard in the work folder, to open it from there."""
+    if _same_folder(HERE, REPO): return
+    dst = os.path.join(HERE, LOCAL_COPY_NAME)
+    with open(OUTPUT_FILE, 'rb') as f: data = f.read()
+    with open(dst, 'wb') as f: f.write(data)
+    print(f"Copied the dashboard to {dst}")
+
+
 def publish(fresh, sources, assume_yes):
-    git('rev-parse', '--is-inside-work-tree')
-    print("\nGetting the latest dashboard from GitHub...")
+    if not os.path.isdir(os.path.join(REPO, '.git')):
+        print(f"ERROR: GitHub folder not found: {REPO}")
+        print("Clone it first (README.md -> Setup), or set its path as \"repo\" in "
+              f"{LOCAL_PATHS_FILE}")
+        sys.exit(1)
+    print(f"\nGetting the latest dashboard from GitHub ({REPO})...")
     changed = git_pull()
-    if 'generate_dashboard.py' in changed:
+    if 'generate_dashboard.py' in changed and _same_folder(HERE, REPO):
         print("\nThe dashboard script was updated on GitHub. Please run the bat again.")
         sys.exit(1)
+    sync_work_folder()
 
     for team, payload in fresh.items():
         stale_check(team, payload)
@@ -1229,8 +1308,8 @@ def publish(fresh, sources, assume_yes):
         for p in paths:
             if was_tracked[p]:
                 git('checkout', '--', p, check=False)
-            elif os.path.exists(os.path.join(ROOT, p)):
-                os.remove(os.path.join(ROOT, p))
+            elif os.path.exists(os.path.join(REPO, p)):
+                os.remove(os.path.join(REPO, p))
 
     for attempt in range(1, 4):
         for team, payload in fresh.items():
@@ -1241,6 +1320,7 @@ def publish(fresh, sources, assume_yes):
         index_same = git('diff', '--quiet', '--', 'index.html', check=False).returncode == 0
         if index_same and only_meta_changed(fresh):
             restore()
+            copy_to_work_folder()
             print("\nNo changes - the dashboard on GitHub already has this data.")
             return
 
@@ -1253,6 +1333,7 @@ def publish(fresh, sources, assume_yes):
         git('commit', '-q', '-m', f"{labels} update - {datetime.now():%Y-%m-%d} (by {git_user()})")
         r = git('push', check=False)
         if r.returncode == 0:
+            copy_to_work_folder()
             print(f"\nPublished! Live in about a minute at {PAGES_URL}")
             return
 
@@ -1334,7 +1415,7 @@ def main():
     if args.publish:
         publish(fresh, sources, args.yes)
     else:
-        out = os.path.join(ROOT, 'preview.html')
+        out = os.path.join(HERE, 'preview.html')
         build(fresh, out)
         print("\nPreview only - nothing saved to data/ or published. Open preview.html to check.")
 
