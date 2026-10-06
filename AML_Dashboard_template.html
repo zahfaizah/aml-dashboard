@@ -835,11 +835,11 @@ function renderScreening(){
   h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var gi_fh=0,gi_th=0,gi_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.indiv_fh_total),th=N(r.indiv_th_total),t=N(r.indiv_generated);gi_fh+=fh;gi_th+=th;gi_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
-  h+='<tr class="tr"><td>Total '+rangeLbl(ms)+'</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table>'+totNote+'</div>';
+  h+='<tr class="tr"><td>Total</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table>'+totNote+'</div>';
   h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var ge_fh=0,ge_th=0,ge_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.entity_fh_total),th=N(r.entity_th_total),t=N(r.entity_generated);ge_fh+=fh;ge_th+=th;ge_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
-  h+='<tr class="tr"><td>Total '+rangeLbl(ms)+'</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table>'+totNote+'</div>';
+  h+='<tr class="tr"><td>Total</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table>'+totNote+'</div>';
   h+='</div>';
   // Category breakdown
   h+='<div style="margin-top:.65rem"></div><div class="cr c2e">';
