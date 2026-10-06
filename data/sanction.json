@@ -1,7 +1,7 @@
 {
  "_meta": {
   "team": "Sanction",
-  "updated_at": "2026-10-05 14:58",
+  "updated_at": "2026-10-06 16:14",
   "updated_by": "Faizah Zahrani",
   "source_file": "SS_Dashboard_Data_2026.xlsx",
   "months": [
@@ -79,34 +79,39 @@
       "false_hit": 819537,
       "true_hit": 3541,
       "manually_closed": 3187,
-      "automation_closed": 0,
-      "alert_generated": 296389
+      "system_closed": 0,
+      "automation_closed": 296389,
+      "alert_generated": 716675
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 723,
       "true_hit": 1,
       "manually_closed": 724,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 720
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 204,
       "true_hit": 39,
       "manually_closed": 243,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 237
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 384,
       "true_hit": 0,
       "manually_closed": 384,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 436
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 1,
       "true_hit": 0,
       "manually_closed": 1,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -114,15 +119,17 @@
       "false_hit": 3,
       "true_hit": 15,
       "manually_closed": 18,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 9
      }
     },
     "batch_total_fh": 820852,
     "batch_total_th": 3596,
     "batch_total_mc": 4557,
-    "batch_total_ac": 0,
-    "batch_total_ag": 296389,
+    "batch_total_sc": 0,
+    "batch_total_ac": 296389,
+    "batch_total_ag": 718077,
     "batch_th_pep": 1320,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 12,
@@ -308,50 +315,57 @@
       "false_hit": 245694,
       "true_hit": 1697,
       "manually_closed": 2872,
-      "automation_closed": 0,
-      "alert_generated": 236295
+      "system_closed": 0,
+      "automation_closed": 236295,
+      "alert_generated": 50724
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 743,
       "true_hit": 0,
       "manually_closed": 743,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 1486
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 144,
       "true_hit": 43,
       "manually_closed": 187,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 182
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 337,
       "true_hit": 5,
       "manually_closed": 342,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 290
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 1,
       "true_hit": 0,
       "manually_closed": 1,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 1
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 2,
       "true_hit": 6,
       "manually_closed": 8,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 8
      }
     },
     "batch_total_fh": 246921,
     "batch_total_th": 1751,
     "batch_total_mc": 4153,
-    "batch_total_ac": 0,
-    "batch_total_ag": 236295,
+    "batch_total_sc": 0,
+    "batch_total_ac": 236295,
+    "batch_total_ag": 52691,
     "batch_th_pep": 1623,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 29,
@@ -544,41 +558,47 @@
       "false_hit": 130403,
       "true_hit": 1213,
       "manually_closed": 14661,
-      "automation_closed": 0,
-      "alert_generated": 52410
+      "system_closed": 0,
+      "automation_closed": 52410,
+      "alert_generated": 134274
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 594,
       "true_hit": 2,
       "manually_closed": 596,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 595
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 350,
       "true_hit": 13,
       "manually_closed": 363,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 363
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 154,
       "true_hit": 0,
       "manually_closed": 154,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 154
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 1,
       "true_hit": 0,
       "manually_closed": 1,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 1
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      }
@@ -586,8 +606,9 @@
     "batch_total_fh": 131502,
     "batch_total_th": 1228,
     "batch_total_mc": 15775,
-    "batch_total_ac": 0,
-    "batch_total_ag": 52410,
+    "batch_total_sc": 0,
+    "batch_total_ac": 52410,
+    "batch_total_ag": 135387,
     "batch_th_pep": 704,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 25,
@@ -755,6 +776,7 @@
       "false_hit": 4016,
       "true_hit": 299,
       "manually_closed": 4315,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -762,6 +784,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -769,6 +792,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -776,6 +800,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -783,6 +808,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -790,6 +816,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      }
@@ -797,6 +824,7 @@
     "batch_total_fh": 4016,
     "batch_total_th": 299,
     "batch_total_mc": 4315,
+    "batch_total_sc": 0,
     "batch_total_ac": 0,
     "batch_total_ag": 0,
     "batch_th_pep": 294,
@@ -969,6 +997,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -976,6 +1005,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -983,6 +1013,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -990,6 +1021,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -997,6 +1029,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1004,6 +1037,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      }
@@ -1011,6 +1045,7 @@
     "batch_total_fh": 0,
     "batch_total_th": 0,
     "batch_total_mc": 0,
+    "batch_total_sc": 0,
     "batch_total_ac": 0,
     "batch_total_ag": 0,
     "batch_th_pep": 1,
@@ -1206,6 +1241,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1213,6 +1249,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1220,6 +1257,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1227,6 +1265,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1234,6 +1273,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      },
@@ -1241,6 +1281,7 @@
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
+      "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
      }
@@ -1248,6 +1289,7 @@
     "batch_total_fh": 0,
     "batch_total_th": 0,
     "batch_total_mc": 0,
+    "batch_total_sc": 0,
     "batch_total_ac": 0,
     "batch_total_ag": 0,
     "batch_th_pep": 24,
@@ -1450,50 +1492,57 @@
       "false_hit": 181192,
       "true_hit": 328,
       "manually_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 181192
+      "system_closed": 0,
+      "automation_closed": 181192,
+      "alert_generated": 196341
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 837,
       "true_hit": 2,
       "manually_closed": 839,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 839
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 134,
       "true_hit": 82,
       "manually_closed": 216,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 216
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 962,
       "true_hit": 3,
       "manually_closed": 965,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 965
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 237,
       "true_hit": 0,
       "manually_closed": 237,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 237
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 7,
       "true_hit": 27,
       "manually_closed": 34,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 34
      }
     },
     "batch_total_fh": 183369,
     "batch_total_th": 442,
     "batch_total_mc": 2291,
-    "batch_total_ac": 0,
-    "batch_total_ag": 181192,
+    "batch_total_sc": 0,
+    "batch_total_ac": 181192,
+    "batch_total_ag": 198632,
     "batch_th_pep": 319,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 9,
@@ -1684,54 +1733,61 @@
       "false_hit": 195526,
       "true_hit": 184,
       "manually_closed": 184,
-      "automation_closed": 0,
-      "alert_generated": 195526
+      "system_closed": 0,
+      "automation_closed": 195526,
+      "alert_generated": 196066
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 845,
       "true_hit": 1,
       "manually_closed": 845,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 846
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 33,
       "true_hit": 24,
       "manually_closed": 57,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 57
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 477,
       "true_hit": 0,
       "manually_closed": 477,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 477
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 203,
       "true_hit": 0,
       "manually_closed": 203,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 203
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 1,
       "true_hit": 20,
       "manually_closed": 21,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 21
      }
     },
     "batch_total_fh": 197085,
     "batch_total_th": 229,
     "batch_total_mc": 1787,
-    "batch_total_ac": 0,
-    "batch_total_ag": 195526,
-    "batch_th_pep": 354,
+    "batch_total_sc": 0,
+    "batch_total_ac": 195526,
+    "batch_total_ag": 197670,
+    "batch_th_pep": 533,
     "batch_th_crime": 0,
-    "batch_th_pepcrime": 15,
-    "batch_th_total": 369,
+    "batch_th_pepcrime": 19,
+    "batch_th_total": 552,
     "batch_generated": 197670,
     "batch_closed": 197313,
     "rem_data_received": 55660,
@@ -1948,50 +2004,61 @@
       "false_hit": 118364,
       "true_hit": 369,
       "manually_closed": 369,
-      "automation_closed": 33991,
-      "alert_generated": 84373
+      "system_closed": 33991,
+      "automation_closed": 84373,
+      "alert_generated": 118843
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 896,
       "true_hit": 1,
       "manually_closed": 785,
-      "automation_closed": 111,
-      "alert_generated": 0
+      "system_closed": 111,
+      "automation_closed": 0,
+      "alert_generated": 897
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 60,
       "true_hit": 14,
       "manually_closed": 24,
-      "automation_closed": 50,
-      "alert_generated": 0
+      "system_closed": 50,
+      "automation_closed": 0,
+      "alert_generated": 74
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 632,
       "true_hit": 4,
       "manually_closed": 634,
-      "automation_closed": 2,
-      "alert_generated": 0
+      "system_closed": 2,
+      "automation_closed": 0,
+      "alert_generated": 636
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 73,
       "true_hit": 0,
       "manually_closed": 73,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 73
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 0,
       "true_hit": 9,
       "manually_closed": 9,
+      "system_closed": 0,
       "automation_closed": 0,
-      "alert_generated": 0
+      "alert_generated": 9
      }
     },
     "batch_total_fh": 120025,
     "batch_total_th": 397,
     "batch_total_mc": 1894,
-    "batch_total_ac": 34154,
-    "batch_total_ag": 84373,
+    "batch_total_sc": 34154,
+    "batch_total_ac": 84373,
+    "batch_total_ag": 120532,
+    "batch_th_pep": 354,
+    "batch_th_crime": 0,
+    "batch_th_pepcrime": 15,
+    "batch_th_total": 369,
     "batch_generated": 120532,
     "batch_closed": 120421,
     "rem_data_received": 40866,
