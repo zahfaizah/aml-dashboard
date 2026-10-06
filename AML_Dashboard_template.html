@@ -57,7 +57,7 @@ body.glass .kp-hl-up{border-left:3px solid #10B981}
 .kp-hl{border-left:3px solid var(--kp-hl-border);background:var(--kp-hl-bg)}
 .kp-hl-up{border-left:3px solid #10B981;background:linear-gradient(90deg,#ECFDF5,var(--card))}
 body.dark .kp-hl-up{background:linear-gradient(90deg,#0F2A1F,var(--card))}
-.cr{display:grid;gap:.65rem}.c3{grid-template-columns:240px 1fr 1fr}.c2{grid-template-columns:1.4fr 1fr}.c2e{grid-template-columns:1fr 1fr}
+.cr{display:grid;gap:.65rem}.cd+.cr,.cr+.cd,.cr+.cr{margin-top:.65rem}.c3{grid-template-columns:240px 1fr 1fr}.c2{grid-template-columns:1.4fr 1fr}.c2e{grid-template-columns:1fr 1fr}
 .cd{background:var(--card);border-radius:10px;padding:1rem;box-shadow:var(--card-sh);transition:background .3s}.cd-t{font-size:.65rem;color:var(--text4);font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:.7rem}
 .dw{position:relative;width:170px;height:170px;margin:0 auto}.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.dc b{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:-.5px;display:block}.dc small{font-size:.55rem;color:var(--text4);font-weight:500}
 .ll{margin-top:.7rem}.li{display:flex;align-items:center;justify-content:space-between;font-size:.65rem;color:var(--text3);padding:.18rem 0}.li-l{display:flex;align-items:center;gap:.35rem}.li-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}.li-p{font-weight:600;color:var(--text);font-size:.65rem}
@@ -776,6 +776,11 @@ function renderDashboard(){
 }
 
 // ═══════ RENDER SCREENING ═══════
+// Individual vs Entity chart: false hits (thousands) on the left axis, true hits (tens) on the right,
+// so the true-hit line isn't flattened onto zero. Zero labels are hidden so they don't pile up.
+function ieScales(){var t=function(txt,c){return{display:true,text:txt,font:{size:9,weight:'600'},color:c}};return{y:Object.assign(axOpts(),{position:'left',beginAtZero:true,title:t('False Hit','#2196F3')}),y1:Object.assign(axOpts(),{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:t('True Hit','#00ACC1')}),x:xO()}}
+function ieThDL(){return Object.assign(mkLDL(),{align:'bottom',offset:6,formatter:function(v){return v?fmt(v):''}})}
+function rangeLbl(ms){return ms.length>1?shortMonth(ms[0])+' \u2013 '+shortMonth(ms[ms.length-1]):shortMonth(ms[0])}
 function renderScreening(){
   var d=STORE.data[curMonth]||{},p=prevMonth(),pd=p?STORE.data[p]:null,ms=getMonths(),lb=ms.map(shortMonth),cd=ms.map(function(m){return STORE.data[m]||{}});
   var h='';
@@ -826,14 +831,15 @@ function renderScreening(){
   h+='<div class="dp" id="dp-hits">';
   // Individual + Entity tables
   h+='<div class="cr c2e">';
-  h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  var totNote='<div style="font-size:.6rem;color:var(--text4);margin-top:.55rem">Total Generated = False Hit + True Hit. Bottom row = sum of '+rangeLbl(ms)+'.</div>';
+  h+='<div class="cd"><div class="cd-t">Individual Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var gi_fh=0,gi_th=0,gi_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.indiv_fh_total),th=N(r.indiv_th_total),t=N(r.indiv_generated);gi_fh+=fh;gi_th+=th;gi_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
-  h+='<tr class="tr"><td>Total</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table></div>';
-  h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total</th></tr></thead><tbody>';
+  h+='<tr class="tr"><td>Total '+rangeLbl(ms)+'</td><td>'+fmt(gi_fh)+'</td><td>'+fmt(gi_th)+'</td><td>'+fmt(gi_t)+'</td></tr></tbody></table>'+totNote+'</div>';
+  h+='<div class="cd"><div class="cd-t">Entity Alert</div><table class="tb"><thead><tr><th>Month</th><th>False Hit</th><th>True Hit</th><th>Total Generated</th></tr></thead><tbody>';
   var ge_fh=0,ge_th=0,ge_t=0;
   ms.forEach(function(m){var r=STORE.data[m]||{};var fh=N(r.entity_fh_total),th=N(r.entity_th_total),t=N(r.entity_generated);ge_fh+=fh;ge_th+=th;ge_t+=t;h+='<tr><td>'+shortMonth(m)+'</td><td>'+fmt(fh)+'</td><td>'+fmt(th)+'</td><td>'+fmt(t)+'</td></tr>'});
-  h+='<tr class="tr"><td>Total</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table></div>';
+  h+='<tr class="tr"><td>Total '+rangeLbl(ms)+'</td><td>'+fmt(ge_fh)+'</td><td>'+fmt(ge_th)+'</td><td>'+fmt(ge_t)+'</td></tr></tbody></table>'+totNote+'</div>';
   h+='</div>';
   // Category breakdown
   h+='<div style="margin-top:.65rem"></div><div class="cr c2e">';
@@ -873,10 +879,10 @@ function renderScreening(){
 
   // Batch detail table
   h+='<div class="dt" onclick="toggleDetail(\'dp-batch\')"><span class="dt-i" id="icon-dp-batch">\u25B6</span><span>View batch detail table</span></div>';
-  h+='<div class="dp" id="dp-batch"><div class="cd"><div class="cd-t">Batch Alert Detail</div><div style="margin-bottom:.6rem"><select class="ms" id="batch-mf" style="font-size:.68rem"><option value="all">All Months</option></select></div><table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';
+  h+='<div class="dp" id="dp-batch"><div class="cd"><div class="cd-t">Batch Alert Detail</div><div style="margin-bottom:.6rem"><select class="ms" id="batch-mf" style="font-size:.68rem"><option value="all">All Months</option></select></div><table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>System Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';
   var scOrder=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];
   var initMs=[curMonth];
-  initMs.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var first=true;scOrder.forEach(function(s){var v=sc[s];if(v){h+='<tr><td>'+(first?shortMonth(m):'')+'</td><td style="text-align:left">'+s+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td><td>'+fmt(v.manually_closed)+'</td><td>'+fmt(v.automation_closed)+'</td><td>'+fmt(v.alert_generated)+'</td></tr>';first=false}})});
+  initMs.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var first=true;scOrder.forEach(function(s){var v=sc[s];if(v){h+='<tr><td>'+(first?shortMonth(m):'')+'</td><td style="text-align:left">'+s+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td><td>'+fmt(v.manually_closed)+'</td><td>'+fmt(N(v.system_closed))+'</td><td>'+fmt(v.automation_closed)+'</td><td>'+fmt(v.alert_generated)+'</td></tr>';first=false}})});
   h+='</tbody></table></div></div>';
 
   document.getElementById('sc-content').innerHTML=h;
@@ -912,17 +918,17 @@ function renderScreening(){
   if(ms.length<=2){
     allCharts.push(new Chart(document.getElementById('sc-ie'),{type:'bar',data:{labels:lb,datasets:[
       bds('Indiv False Hit',cd.map(function(d){return N(d.indiv_fh_total)}),'#2196F3','#90CAF9'),
-      bds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),'#1565C0','#5C9CE6'),
+      Object.assign(bds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),'#1565C0','#5C9CE6'),{yAxisID:'y1'}),
       bds('Entity False Hit',cd.map(function(d){return N(d.entity_fh_total)}),'#0D47A1','#5472D3'),
-      bds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),'#00ACC1','#4DD0E1')
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:9}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
+      Object.assign(bds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),'#00ACC1','#4DD0E1'),{yAxisID:'y1'})
+    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:9}}},tooltip:tt,datalabels:mkBDL()},scales:ieScales(),layout:{padding:{top:18}}}}));
   } else {
     allCharts.push(new Chart(document.getElementById('sc-ie'),{type:'line',data:{labels:lb,datasets:[
       lds('Indiv False Hit',cd.map(function(d){return N(d.indiv_fh_total)}),CL.blue),
-      lds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),CL.blue,{noFill:true}),
+      Object.assign(lds('Indiv True Hit',cd.map(function(d){return N(d.indiv_th_total)}),'#00ACC1',{noFill:true}),{yAxisID:'y1',datalabels:ieThDL()}),
       lds('Entity False Hit',cd.map(function(d){return N(d.entity_fh_total)}),CL.mid,{dash:true,hollow:true}),
-      lds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),CL.gray,{dash:true,noFill:true})
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:10,font:{size:9}}},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{right:42}}}}));
+      Object.assign(lds('Entity True Hit',cd.map(function(d){return N(d.entity_th_total)}),CL.gray,{dash:true,noFill:true}),{yAxisID:'y1',datalabels:ieThDL()})
+    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:10,font:{size:9}}},tooltip:tt,datalabels:mkLDL()},scales:ieScales(),layout:{padding:{right:42,top:18}}}}));
   }
 
   // True hits by category (bar)
@@ -1034,9 +1040,10 @@ function renderDTTOT(){
   h+='</div>';
   h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Updates over Time</div><div style="height:260px"><canvas id="dttot-bar"></canvas></div></div>';
   h+='<div class="cd"><div class="cd-t">Recorded Names Trend</div><div style="height:260px"><canvas id="dttot-trend"></canvas></div></div></div>';
-  h+='<div style="margin-top:.65rem"></div><div class="cd"><div class="cd-t">DTTOT Log \u2014 All Records</div><table class="tb"><thead><tr><th>Email Date</th><th>DTTOT Number</th><th>Names</th></tr></thead><tbody>';
+  h+='<div class="dt" style="margin-top:1rem" onclick="toggleDetail(\'dp-dttot\')"><span class="dt-i" id="icon-dp-dttot">\u25B6</span><span>View DTTOT log (all records)</span></div>';
+  h+='<div class="dp" id="dp-dttot"><div class="cd"><div class="cd-t">DTTOT Log \u2014 All Records</div><table class="tb"><thead><tr><th>Email Date</th><th>DTTOT Number</th><th>Names</th></tr></thead><tbody>';
   dt.rows.forEach(function(r){h+='<tr><td>'+r.email_date+'</td><td>'+r.dttot_number+'</td><td>'+r.recorded_names+'</td></tr>'});
-  h+='<tr class="tr"><td></td><td>Total</td><td>'+dt.total_names+'</td></tr></tbody></table></div>';
+  h+='<tr class="tr"><td></td><td>Total</td><td>'+dt.total_names+'</td></tr></tbody></table></div></div>';
   document.getElementById('dttot-content').innerHTML=h;
   ensureDL();
   function shortDT(s){return s.replace(/^DTTOT[\s\-]*/i,'')}
@@ -1873,7 +1880,7 @@ document.addEventListener('DOMContentLoaded',function(){
   render();
 });
 
-function initBatchFilter(){var s=document.getElementById('batch-mf');if(!s)return;s.innerHTML='<option value="all">All Months</option>';getMonths().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)});s.onchange=function(){var mf=this.value;var scO=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];var ms2=mf==='all'?getMonths():[mf];var t='<table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';ms2.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var f=true;scO.forEach(function(n){var v=sc[n];if(v){t+="<tr><td>"+(f?shortMonth(m):"")+"</td><td style=\"text-align:left\">"+n+"</td><td>"+fmt(v.false_hit)+"</td><td>"+fmt(v.true_hit)+"</td><td>"+fmt(v.manually_closed)+"</td><td>"+fmt(v.automation_closed)+"</td><td>"+fmt(v.alert_generated)+"</td></tr>";f=false}})});t+="</tbody></table>";var parent=s.parentElement.parentElement;var existingTable=parent.querySelector("table");if(existingTable)existingTable.outerHTML=t}}
+function initBatchFilter(){var s=document.getElementById('batch-mf');if(!s)return;s.innerHTML='<option value="all">All Months</option>';getMonths().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)});s.onchange=function(){var mf=this.value;var scO=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];var ms2=mf==='all'?getMonths():[mf];var t='<table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>System Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';ms2.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var f=true;scO.forEach(function(n){var v=sc[n];if(v){t+="<tr><td>"+(f?shortMonth(m):"")+"</td><td style=\"text-align:left\">"+n+"</td><td>"+fmt(v.false_hit)+"</td><td>"+fmt(v.true_hit)+"</td><td>"+fmt(v.manually_closed)+"</td><td>"+fmt(N(v.system_closed))+"</td><td>"+fmt(v.automation_closed)+"</td><td>"+fmt(v.alert_generated)+"</td></tr>";f=false}})});t+="</tbody></table>";var parent=s.parentElement.parentElement;var existingTable=parent.querySelector("table");if(existingTable)existingTable.outerHTML=t}}
 
 // ═══════════════════════════════════════════════════════════
 // NON TMS

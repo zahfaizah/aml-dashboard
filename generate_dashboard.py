@@ -229,8 +229,18 @@ def read_screening(path):
             data['realtime_update'][label] = {'generated': gen, 'closed': closed}
 
     # ── Batch screening alerts (month cells are merged; carry forward) ──
+    # Columns are found by their header text, so inserting a column in the
+    # sheet (e.g. 'System Closed') doesn't shift the others.
     if h_bal is not None:
         yr = block_year(df, RIGHT, h_bal)
+        BATCH_COLS = {'false_hit': 'false hit', 'true_hit': 'true hit',
+                      'manually_closed': 'manually closed', 'system_closed': 'system closed',
+                      'automation_closed': 'automation closed', 'alert_generated': 'alert generated'}
+        hdr = {_cell_txt(df.iloc[h_bal, c]).lower(): c for c in range(RIGHT + 2, df.shape[1])}
+        cols = {k: hdr.get(h) for k, h in BATCH_COLS.items()}
+        missing_cols = [BATCH_COLS[k] for k, c in cols.items() if c is None and k != 'system_closed']
+        if missing_cols:
+            print(f"  WARNING: Batch Screening Alert columns not found: {', '.join(missing_cols)}")
         current = None
         for i in range(h_bal + 1, block_end(df, RIGHT, h_bal)):
             label = month_label(df.iloc[i, RIGHT], yr)
@@ -239,12 +249,9 @@ def read_screening(path):
                 data['batch_alerts'].setdefault(current, {})
             scenario = _cell_txt(df.iloc[i, RIGHT + 1])
             if not scenario.upper().startswith('BATCH') or not current: continue
-            if all(pd.isna(df.iloc[i, c]) for c in range(21, 26)): continue
+            if all(pd.isna(df.iloc[i, c]) for c in cols.values() if c is not None): continue
             data['batch_alerts'][current][scenario] = {
-                'false_hit': safe_int(df.iloc[i, 21]), 'true_hit': safe_int(df.iloc[i, 22]),
-                'manually_closed': safe_int(df.iloc[i, 23]), 'automation_closed': safe_int(df.iloc[i, 24]),
-                'alert_generated': safe_int(df.iloc[i, 25]),
-            }
+                k: (safe_int(df.iloc[i, c]) if c is not None else 0) for k, c in cols.items()}
         data['batch_alerts'] = {k: v for k, v in data['batch_alerts'].items() if v}
 
     # ── Batch PEP individual true hit by type ──
@@ -790,6 +797,7 @@ def compute_derived(sanction_data, nontms_data, tms_data):
                 m['batch_total_fh'] = sum(s['false_hit'] for s in ba.values())
                 m['batch_total_th'] = sum(s['true_hit'] for s in ba.values())
                 m['batch_total_mc'] = sum(s['manually_closed'] for s in ba.values())
+                m['batch_total_sc'] = sum(s.get('system_closed', 0) for s in ba.values())
                 m['batch_total_ac'] = sum(s['automation_closed'] for s in ba.values())
                 m['batch_total_ag'] = sum(s['alert_generated'] for s in ba.values())
 
