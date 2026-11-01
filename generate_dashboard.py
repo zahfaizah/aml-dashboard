@@ -375,6 +375,26 @@ def read_dttot(path):
     return {'total_names': sum(r['recorded_names'] for r in rows), 'total_updates': len(rows), 'rows': rows}
 
 
+def read_reported(path):
+    """'Reported' sheet (filled by hand since Sep 2026): Month | Monitored | UTR - Unusual.
+    Optional - an Excel without this sheet just has no Reported data."""
+    try:
+        df = pd.read_excel(path, sheet_name='Reported', header=0)
+    except ValueError:
+        return {}
+    cols = {_cell_txt(c).lower(): c for c in df.columns}
+    c_mon, c_utr = cols.get('monitored'), cols.get('utr - unusual')
+    if 'month' not in cols or c_mon is None or c_utr is None:
+        print("  WARNING: 'Reported' sheet needs the columns Month | Monitored | UTR - Unusual - skipped.")
+        return {}
+    result = {}
+    for _, row in df.iterrows():
+        label = month_label(row[cols['month']])
+        if not label or (pd.isna(row[c_mon]) and pd.isna(row[c_utr])): continue
+        result[label] = {'monitored': safe_int(row[c_mon]), 'utr_unusual': safe_int(row[c_utr])}
+    return result
+
+
 def read_sanction(path):
     """Read all Sanction team data from one Excel file. Returns None if file missing."""
     if not os.path.exists(path):
@@ -386,8 +406,10 @@ def read_sanction(path):
     submerchant = read_submerchant(path)
     newsletter = read_newsletter(path)
     dttot = read_dttot(path)
+    reported = read_reported(path)
     return {'screening': screening, 'remittance': remittance,
-            'submerchant': submerchant, 'newsletter': newsletter, 'dttot': dttot}
+            'submerchant': submerchant, 'newsletter': newsletter, 'dttot': dttot,
+            'reported': reported}
 
 
 # ═══════════════════════════════════════════════════════════
@@ -751,12 +773,13 @@ def compute_derived(sanction_data, nontms_data, tms_data):
         submerchant = sanction_data['submerchant']
         newsletter = sanction_data['newsletter']
         dttot = sanction_data['dttot']
+        reported = sanction_data.get('reported', {})
 
         all_months = set()
         for src in [screening['realtime_hits'], screening['realtime_generated'],
                     screening['realtime_update'], screening['batch_alerts'],
                     screening['batch_truehit'], screening['batch_update'],
-                    remittance['monthly'], submerchant, newsletter['monthly']]:
+                    remittance['monthly'], submerchant, newsletter['monthly'], reported]:
             all_months.update(src.keys())
         all_months = sorted(all_months, key=month_sort_key)
 
@@ -827,6 +850,10 @@ def compute_derived(sanction_data, nontms_data, tms_data):
                 m['news_total'] = news['total_names']; m['news_count'] = news['count']; m['news_avg'] = news['avg']
             m['news_rows'] = newsletter['rows'].get(label, [])
 
+            rep = reported.get(label, {})
+            if rep:
+                m['rep_monitored'] = rep['monitored']; m['rep_utr_unusual'] = rep['utr_unusual']
+
             months_data[label] = m
 
         def has_real_data(d):
@@ -834,7 +861,8 @@ def compute_derived(sanction_data, nontms_data, tms_data):
             # Check the key indicators that prove real data exists
             checks = ['total_alerts','rt_generated','rt_closed','batch_generated','batch_closed',
                       'batch_total_th','batch_total_fh','rem_data_received','rem_false_hit','rem_true_hit',
-                      'news_total','subm_total_hit','subm_shop_id','true_hit_total','false_hit_indiv']
+                      'news_total','subm_total_hit','subm_shop_id','true_hit_total','false_hit_indiv',
+                      'rep_monitored','rep_utr_unusual']
             for k in checks:
                 v = d.get(k, 0)
                 if isinstance(v, (int, float)) and v > 0:
