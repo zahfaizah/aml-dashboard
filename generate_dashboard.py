@@ -181,7 +181,7 @@ def read_screening(path):
     h_upd  = find_block_header(df, LEFT,  lambda s: 'total alert generate' in s)
     h_bal  = find_block_header(df, RIGHT, lambda s: s.startswith('type alert'))
     h_bth  = find_block_header(df, RIGHT, lambda s: s == 'pep')
-    h_bupd = find_block_header(df, RIGHT, lambda s: 'total alert generate' in s)
+    h_bupd = find_block_header(df, RIGHT, lambda s: 'total alert generate' in s or 'total alert created' in s)
 
     missing = [n for n, h in [('Realtime hits', h_hits), ('Realtime generated', h_gen),
                               ('Realtime update', h_upd), ('Batch alerts', h_bal),
@@ -233,12 +233,14 @@ def read_screening(path):
     # sheet (e.g. 'System Closed') doesn't shift the others.
     if h_bal is not None:
         yr = block_year(df, RIGHT, h_bal)
-        BATCH_COLS = {'false_hit': 'false hit', 'true_hit': 'true hit',
-                      'manually_closed': 'manually closed', 'system_closed': 'system closed',
-                      'automation_closed': 'automation closed', 'alert_generated': 'alert generated'}
+        # 'Alert Created' was called 'Alert Generated' before Nov 2026 - accept both.
+        BATCH_COLS = {'false_hit': ('false hit',), 'true_hit': ('true hit',),
+                      'manually_closed': ('manually closed',), 'system_closed': ('system closed',),
+                      'automation_closed': ('automation closed',),
+                      'alert_generated': ('alert created', 'alert generated')}
         hdr = {_cell_txt(df.iloc[h_bal, c]).lower(): c for c in range(RIGHT + 2, df.shape[1])}
-        cols = {k: hdr.get(h) for k, h in BATCH_COLS.items()}
-        missing_cols = [BATCH_COLS[k] for k, c in cols.items() if c is None and k != 'system_closed']
+        cols = {k: next((hdr[h] for h in names if h in hdr), None) for k, names in BATCH_COLS.items()}
+        missing_cols = [BATCH_COLS[k][0] for k, c in cols.items() if c is None and k != 'system_closed']
         if missing_cols:
             print(f"  WARNING: Batch Screening Alert columns not found: {', '.join(missing_cols)}")
         current = None
@@ -255,13 +257,23 @@ def read_screening(path):
         data['batch_alerts'] = {k: v for k, v in data['batch_alerts'].items() if v}
 
     # ── Batch PEP individual true hit by type ──
+    # Columns found by header (spaces ignored, so 'PEP/ Crime' works). The
+    # 'Crime' column was dropped in Nov 2026; older files that still have it
+    # are read too, otherwise Crime is 0.
     if h_bth is not None:
         yr = block_year(df, RIGHT, h_bth)
+        hdr = {_cell_txt(df.iloc[h_bth, c]).lower().replace(' ', ''): c
+               for c in range(RIGHT + 1, df.shape[1])}
+        c_pep, c_crime = hdr.get('pep'), hdr.get('crime')
+        c_pepcrime, c_total = hdr.get('pep/crime'), hdr.get('totaltruehit')
+        if None in (c_pep, c_pepcrime, c_total):
+            print("  WARNING: Batch PEP true hit table needs the columns PEP | PEP/ Crime | Total True Hit.")
+        def cell(i, c): return safe_int(df.iloc[i, c]) if c is not None else 0
         for i in range(h_bth + 1, block_end(df, RIGHT, h_bth)):
             label = month_label(df.iloc[i, RIGHT], yr)
             if not label: continue
-            pep, crime = safe_int(df.iloc[i, 20]), safe_int(df.iloc[i, 21])
-            pepcrime, total = safe_int(df.iloc[i, 22]), safe_int(df.iloc[i, 23])
+            pep, crime = cell(i, c_pep), cell(i, c_crime)
+            pepcrime, total = cell(i, c_pepcrime), cell(i, c_total)
             if pep + crime + pepcrime + total == 0: continue
             data['batch_truehit'][label] = {
                 'PEP': pep, 'Crime': crime, 'PEP_Crime': pepcrime, 'Total': total,

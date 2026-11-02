@@ -62,6 +62,13 @@ body.dark .kp-hl-up{background:linear-gradient(90deg,#0F2A1F,var(--card))}
 .dw{position:relative;width:170px;height:170px;margin:0 auto}.dc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}.dc b{font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:-.5px;display:block}.dc small{font-size:.55rem;color:var(--text4);font-weight:500}
 .ll{margin-top:.7rem}.li{display:flex;align-items:center;justify-content:space-between;font-size:.65rem;color:var(--text3);padding:.18rem 0}.li-l{display:flex;align-items:center;gap:.35rem}.li-d{width:7px;height:7px;border-radius:50%;flex-shrink:0}.li-p{font-weight:600;color:var(--text);font-size:.65rem}
 .tb{width:100%;font-size:.72rem;border-collapse:collapse}.tb th,.tb td{padding:.42rem .9rem;white-space:nowrap;text-align:center}.tb thead th{color:var(--text4);font-weight:600;font-size:.58rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--border)}.tb thead th:first-child{text-align:left}.tb tbody td{border-bottom:1px solid var(--border);color:var(--text2);font-variant-numeric:tabular-nums}.tb tbody td:first-child{color:var(--text3);font-weight:500;text-align:left}.tb tbody tr:hover{background:var(--tb-stripe)}.tb tbody tr.tr td{font-weight:700;color:var(--text);border-top:1.5px solid var(--acc);border-bottom:none;padding-top:.48rem}.tb tbody tr.tr td:first-child{text-align:left}
+/* Info tooltip (infoTip): small (i) button; its popover is moved to <body> while shown so cards/tables never clip it */
+.ii{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;margin-left:4px;padding:0;border:1.2px solid currentColor;border-radius:50%;background:none;color:var(--text4);font:italic 700 8.5px/1 Georgia,'Times New Roman',serif;text-transform:none;letter-spacing:0;vertical-align:-2px;cursor:help;opacity:.85;transition:color .15s,opacity .15s}
+.ii:hover,.ii:focus-visible,.ii.on{color:var(--acc);opacity:1}
+.ii:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.ii-pop{display:none}
+.ii-pop.show{display:block;position:fixed;z-index:10000;max-width:260px;padding:.45rem .6rem;border-radius:7px;background:var(--text);color:var(--card);font-family:inherit;font-size:.66rem;font-weight:500;line-height:1.45;font-style:normal;text-transform:none;letter-spacing:0;white-space:normal;text-align:left;box-shadow:0 6px 20px rgba(0,0,0,.18);pointer-events:none}
+.tb-note{font-size:.6rem;color:var(--text4);margin-top:.55rem}
 .tg-row{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem}.tg{padding:.18rem .5rem;border-radius:5px;font-size:.58rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text4);font-family:inherit;transition:all .15s}.tg:hover{border-color:var(--text5)}.tg.on{color:#fff}
 .tg[data-c="PEP"].on{background:#2196F3;border-color:#2196F3}.tg[data-c="Sanction"].on{background:#1565C0;border-color:#1565C0}.tg[data-c="Internal List"].on{background:#5C9CE6;border-color:#5C9CE6}.tg[data-c="Multitype"].on{background:#90A4AE;border-color:#90A4AE}
 .tw{height:240px}.tw canvas{height:100%!important}
@@ -526,6 +533,7 @@ body.dark .tp-seg-btn.active{box-shadow:0 1px 4px rgba(0,0,0,.3)}
   <div id="rem-content"></div>
   <div id="news-content"></div>
   <div id="dttot-content"></div>
+  <div id="rep-content"></div>
   <div id="ntms-content"></div>
   <div id="tms-summary-content"></div>
   <div id="tms-rekyc-content"></div>
@@ -679,7 +687,44 @@ function buildFilter(id){
 function setMonth(v){curMonth=v;render()}
 function toggleLabels(btn){window.showLabels=!window.showLabels;btn.classList.toggle('on',window.showLabels);btn.textContent=window.showLabels?'Values: On':'Values: Off';allCharts.forEach(function(c){try{c.update('none')}catch(e){}});var sw=document.getElementById('tp-labels');if(sw){sw.classList.toggle('on',window.showLabels);document.getElementById('tp-labels-txt').textContent=window.showLabels?'On':'Off'};localStorage.setItem('aml_labels',window.showLabels?'1':'0')}
 
-function kp(label,value,dlt,extra){var c=dlt?dlt.cls:'',t=dlt?dlt.txt:'',hl='';if(extra&&extra.hl){hl=c==='up'?' kp-hl-up':(c==='dn'?' kp-hl':'')}var isPct=String(value).indexOf('%')>=0;var numVal=parseFloat(String(value).replace(/\./g,'').replace(',','.'));var isNum=!isPct&&!isNaN(numVal)&&isFinite(numVal);return'<div class="kp'+hl+'"><div class="kp-l">'+label+'</div><div class="kp-v"'+(extra&&extra.color?' style="color:'+extra.color+'"':'')+(isNum?' data-count="'+numVal+'"':'')+'>'+value+'</div>'+(t?'<div class="kp-d '+c+'">'+t+'</div>':'')+'<canvas class="kp-spark" width="100" height="24" style="display:none;width:100%;height:20px;margin-top:4px;opacity:.5"></canvas></div>'}
+// ── Info tooltip ──
+// infoTip(name,text) -> small (i) button; shows `text` on hover, keyboard focus or tap
+// (second tap / Esc / tapping elsewhere hides it). Texts shared by tables and KPI cards live in INFO.
+var INFO={
+  false_hit:'All alerts closed as false hit, by anyone.',
+  true_hit:'All alerts closed as true hit, by anyone.',
+  manual_close:'Alerts closed by an analyst.',
+  system_close:'Alerts closed by the system, false hit and true hit.',
+  auto_close:'Alerts closed by automation (PEP Individual only).',
+  created:'All alerts created in the period.'
+};
+var _iiSeq=0,_iiOpen=null,_iiPtr='';
+function infoTip(name,text){var id='ii-'+(++_iiSeq);return'<button type="button" class="ii" aria-label="About '+name+'" aria-describedby="'+id+'">i<span class="ii-pop" role="tooltip" id="'+id+'">'+text+'</span></button>'}
+function thInfo(name,key,attrs){return'<th'+(attrs||'')+'>'+name+infoTip(name,INFO[key])+'</th>'}
+function iiShow(btn){
+  if(_iiOpen===btn)return;iiHide();
+  var pop=document.getElementById(btn.getAttribute('aria-describedby'));if(!pop)return;
+  btn._iiPop=pop;document.body.appendChild(pop);pop.classList.add('show');btn.classList.add('on');_iiOpen=btn;
+  var r=btn.getBoundingClientRect(),w=pop.offsetWidth,h=pop.offsetHeight,vw=document.documentElement.clientWidth;
+  var x=Math.max(8,Math.min(r.left+r.width/2-w/2,vw-w-8)),y=r.bottom+6;
+  if(y+h>window.innerHeight-8)y=r.top-h-6;
+  pop.style.left=x+'px';pop.style.top=y+'px';
+}
+function iiHide(){
+  var btn=_iiOpen;if(!btn)return;_iiOpen=null;btn.classList.remove('on');
+  var pop=btn._iiPop;if(pop){pop.classList.remove('show');if(btn.isConnected)btn.appendChild(pop);else pop.remove()}
+}
+document.addEventListener('pointerdown',function(e){_iiPtr=e.pointerType;var b=e.target.closest&&e.target.closest('.ii');if(!b&&_iiOpen)iiHide()},true);
+document.addEventListener('keydown',function(e){_iiPtr='';if(e.key==='Escape')iiHide()});
+document.addEventListener('mouseover',function(e){var b=e.target.closest&&e.target.closest('.ii');if(b&&_iiPtr!=='touch')iiShow(b)});
+document.addEventListener('mouseout',function(e){var b=e.target.closest&&e.target.closest('.ii');if(b&&b===_iiOpen&&!b.contains(e.relatedTarget)&&!b.matches(':focus-visible'))iiHide()});
+document.addEventListener('focusin',function(e){var b=e.target.closest&&e.target.closest('.ii');if(b&&_iiPtr!=='touch'&&_iiPtr!=='pen')iiShow(b)});
+document.addEventListener('focusout',function(e){if(e.target===_iiOpen)iiHide()});
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.ii');if(!b)return;e.preventDefault();e.stopPropagation();if(_iiPtr==='touch'||_iiPtr==='pen'){if(_iiOpen===b)iiHide();else iiShow(b)}},true);
+window.addEventListener('scroll',iiHide,true);window.addEventListener('resize',iiHide);
+
+// extra.info = INFO key -> (i) tooltip after the card label
+function kp(label,value,dlt,extra){var c=dlt?dlt.cls:'',t=dlt?dlt.txt:'',hl='';if(extra&&extra.hl){hl=c==='up'?' kp-hl-up':(c==='dn'?' kp-hl':'')}var isPct=String(value).indexOf('%')>=0;var numVal=parseFloat(String(value).replace(/\./g,'').replace(',','.'));var isNum=!isPct&&!isNaN(numVal)&&isFinite(numVal);return'<div class="kp'+hl+'"><div class="kp-l">'+label+(extra&&extra.info?infoTip(label,INFO[extra.info]):'')+'</div><div class="kp-v"'+(extra&&extra.color?' style="color:'+extra.color+'"':'')+(isNum?' data-count="'+numVal+'"':'')+'>'+value+'</div>'+(t?'<div class="kp-d '+c+'">'+t+'</div>':'')+'<canvas class="kp-spark" width="100" height="24" style="display:none;width:100%;height:20px;margin-top:4px;opacity:.5"></canvas></div>'}
 function outliers(deltas){
   var ups=0,dns=0;
   deltas.forEach(function(d){if(d&&d.cls==='up')ups++;else if(d&&d.cls==='dn')dns++});
@@ -704,7 +749,7 @@ function renderDashboard(){
   h+='<div class="kr">';
   h+=kp('Realtime \u2014 Total Generated',fmt(N(d.rt_generated)),dsD[0],dsO[0]?{hl:true}:null);
   h+=kp('Realtime \u2014 Total True Hit',fmt(N(d.true_hit_total)),dsD[1],dsO[1]?{hl:true}:null);
-  h+=kp('Batch \u2014 Total Generated',fmt(N(d.batch_generated)),dsD[2],dsO[2]?{hl:true}:null);
+  h+=kp('Batch \u2014 Total Created',fmt(N(d.batch_generated)),dsD[2],{hl:dsO[2],info:'created'});
   h+=kp('Batch True Hits',fmt(N(d.batch_th_total)),dsD[3],dsO[3]?{hl:true}:null);
   h+='</div>';
   h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Realtime Screening Trend</div><div style="height:200px"><canvas id="dc-rt"></canvas></div></div>';
@@ -745,7 +790,7 @@ function renderDashboard(){
       bds('True Hit',cd.map(function(d){return N(d.true_hit_total)}),'#00ACC1','#4DD0E1')
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:8}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
     allCharts.push(new Chart(document.getElementById('dc-batch'),{type:'bar',data:{labels:lb,datasets:[
-      bds('Generated',cd.map(function(d){return N(d.batch_generated)}),'#1565C0','#64B5F6'),
+      bds('Created',cd.map(function(d){return N(d.batch_generated)}),'#1565C0','#64B5F6'),
       bds('Closed',cd.map(function(d){return N(d.batch_closed)}),'#0D47A1','#5472D3'),
       bds('True Hit',cd.map(function(d){return N(d.batch_total_th)}),'#00ACC1','#4DD0E1')
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:8}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
@@ -757,7 +802,7 @@ function renderDashboard(){
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,boxHeight:6,padding:8,font:{size:8}}},tooltip:tt,datalabels:{display:false}},scales:{y:axOpts(),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:30,top:14}}}}));
     allCharts.push(new Chart(document.getElementById('dc-batch'),{type:'bar',data:{labels:lb,datasets:[
       {label:'True Hit',data:cd.map(function(d){return N(d.batch_total_th)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:5,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3,datalabels:{display:false}},
-      {label:'Generated',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:1,datalabels:mkLDL()},
+      {label:'Created',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:1,datalabels:mkLDL()},
       {label:'Closed',data:cd.map(function(d){return N(d.batch_closed)}),type:'line',borderColor:'#0D47A1',borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#0D47A1')},fill:true,tension:.35,pointRadius:3,borderWidth:2,yAxisID:'y',order:0,datalabels:{display:false}}
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,boxHeight:6,padding:8,font:{size:8}}},tooltip:tt,datalabels:{display:false}},scales:{y:axOpts(),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:30,top:14}}}}));
   }
@@ -855,10 +900,10 @@ function renderScreening(){
   var btD=[pd?delta(N(d.batch_generated),N(pd.batch_generated),p):null,pd?delta(N(d.batch_closed),N(pd.batch_closed),p):null,pd?delta(N(d.batch_total_th),N(pd.batch_total_th),p):null,pd?delta(N(d.batch_total_fh),N(pd.batch_total_fh),p):null];
   var btO=outliers(btD);
   h+='<div class="kr">';
-  h+=kp('Total Alert Generated',fmt(N(d.batch_generated)),btD[0],btO[0]?{hl:true}:null);
+  h+=kp('Total Alert Created',fmt(N(d.batch_generated)),btD[0],{hl:btO[0],info:'created'});
   h+=kp('Total Closed',fmt(N(d.batch_closed)),btD[1],btO[1]?{hl:true}:null);
-  h+=kp('Total True Hit',fmt(N(d.batch_total_th)),btD[2],btO[2]?{hl:true}:null);
-  h+=kp('Total False Hit',fmt(N(d.batch_total_fh)),btD[3],btO[3]?{hl:true}:null);
+  h+=kp('Total True Hit',fmt(N(d.batch_total_th)),btD[2],{hl:btO[2],info:'true_hit'});
+  h+=kp('Total False Hit',fmt(N(d.batch_total_fh)),btD[3],{hl:btO[3],info:'false_hit'});
   h+='</div>';
   if(ms.length===1){
     h+='<div class="cr c2e"><div class="cd"><div class="cd-t">Batch Screening</div><div style="height:180px"><canvas id="sc-batch-trend"></canvas></div></div>';
@@ -873,17 +918,16 @@ function renderScreening(){
   h+='<div class="th-big"><b>'+fmt(N(d.batch_th_total))+'</b><small>Total True Hit '+curMonth+'</small></div>';
   h+='<table class="tb" style="margin-top:.8rem"><thead><tr><th>Type</th><th>Count</th></tr></thead><tbody>';
   h+='<tr><td>PEP</td><td>'+fmt(N(d.batch_th_pep))+'</td></tr>';
-  h+='<tr><td>Crime</td><td>'+fmt(N(d.batch_th_crime))+'</td></tr>';
   h+='<tr><td>PEP/Crime</td><td>'+fmt(N(d.batch_th_pepcrime))+'</td></tr>';
   h+='</tbody></table></div></div>';
 
   // Batch detail table
   h+='<div class="dt" onclick="toggleDetail(\'dp-batch\')"><span class="dt-i" id="icon-dp-batch">\u25B6</span><span>View batch detail table</span></div>';
-  h+='<div class="dp" id="dp-batch"><div class="cd"><div class="cd-t">Batch Alert Detail</div><div style="margin-bottom:.6rem"><select class="ms" id="batch-mf" style="font-size:.68rem"><option value="all">All Months</option></select></div><table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>System Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';
+  h+='<div class="dp" id="dp-batch"><div class="cd"><div class="cd-t">Batch Alert Detail</div><div style="margin-bottom:.6rem"><select class="ms" id="batch-mf" style="font-size:.68rem"><option value="all">All Months</option></select></div><table class="tb">'+batchHead()+'<tbody>';
   var scOrder=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];
   var initMs=[curMonth];
   initMs.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var first=true;scOrder.forEach(function(s){var v=sc[s];if(v){h+='<tr><td>'+(first?shortMonth(m):'')+'</td><td style="text-align:left">'+s+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td><td>'+fmt(v.manually_closed)+'</td><td>'+fmt(N(v.system_closed))+'</td><td>'+fmt(v.automation_closed)+'</td><td>'+fmt(v.alert_generated)+'</td></tr>';first=false}})});
-  h+='</tbody></table></div></div>';
+  h+='</tbody></table><div class="tb-note">Closed counts use the close date; Created uses the creation date.</div></div></div>';
 
   document.getElementById('sc-content').innerHTML=h;
   ensureDL();
@@ -941,14 +985,14 @@ function renderScreening(){
   // Batch trend: grouped bars for <=2 months, composite bar+line for 3+
   if(ms.length<=2){
     allCharts.push(new Chart(document.getElementById('sc-batch-trend'),{type:'bar',data:{labels:lb,datasets:[
-      bds('Generated',cd.map(function(d){return N(d.batch_generated)}),'#1565C0','#64B5F6'),
+      bds('Created',cd.map(function(d){return N(d.batch_generated)}),'#1565C0','#64B5F6'),
       bds('Closed',cd.map(function(d){return N(d.batch_closed)}),'#0D47A1','#5472D3'),
       bds('True Hit',cd.map(function(d){return N(d.batch_total_th)}),'#00ACC1','#4DD0E1')
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:22}}}}));
   } else {
     allCharts.push(new Chart(document.getElementById('sc-batch-trend'),{type:'bar',data:{labels:lb,datasets:[
       {label:'True Hit',data:cd.map(function(d){return N(d.batch_total_th)}),backgroundColor:function(c){return makeGrad(c,'#2196F3','#90CAF9')},borderRadius:6,borderSkipped:false,barPercentage:.4,categoryPercentage:.5,yAxisID:'y1',order:3,datalabels:{display:false}},
-      {label:'Generated',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.dk,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:1,datalabels:mkLDL()},
+      {label:'Created',data:cd.map(function(d){return N(d.batch_generated)}),type:'line',borderColor:CL.dk,backgroundColor:function(c){return makeFill(c.chart,CL.dk)},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:CL.dk,pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:1,datalabels:mkLDL()},
       {label:'Closed',data:cd.map(function(d){return N(d.batch_closed)}),type:'line',borderColor:'#0D47A1',borderDash:[6,4],backgroundColor:function(c){return makeFill(c.chart,'#0D47A1')},fill:true,tension:.35,pointRadius:4,pointBackgroundColor:'#0D47A1',pointBorderColor:'#fff',pointBorderWidth:2,borderWidth:2.5,yAxisID:'y',order:0,datalabels:{display:false}}
     ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,boxHeight:8,padding:12,font:{size:9}}},tooltip:tt,datalabels:{display:false}},scales:{y:Object.assign(axOpts(),{position:'left'}),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false}}),x:xO()},layout:{padding:{right:48,top:18}}}}));
   }
@@ -956,7 +1000,6 @@ function renderScreening(){
   // Batch PEP Individual True Hit trend
   allCharts.push(new Chart(document.getElementById('sc-batch-th-type'),{type:'bar',data:{labels:lb,datasets:[
     bds('PEP',cd.map(function(d){return N(d.batch_th_pep)}),'#2196F3','#90CAF9'),
-    bds('Crime',cd.map(function(d){return N(d.batch_th_crime)}),'#1565C0','#5C9CE6'),
     bds('PEP/Crime',cd.map(function(d){return N(d.batch_th_pepcrime)}),'#5C9CE6','#B3D9F7')
   ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:9}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:14}}}}));
   setTimeout(initBatchFilter,100);
@@ -1053,6 +1096,31 @@ function renderDTTOT(){
   allCharts.push(new Chart(document.getElementById('dttot-trend'),{type:'line',data:{labels:td.map(function(t){return t.l}),datasets:[lds('Cumulative',td.map(function(t){return t.v}),CL.blue)]},options:{maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt,datalabels:mkLDL()},scales:{y:axOpts(),x:{grid:{display:false},ticks:{font:{size:8},color:'#6B7280',maxRotation:45,autoSkip:false}}},layout:{padding:{right:48,top:18}}}}));
 }
 
+// ═══════ RENDER REPORTED ═══════
+// Manual 'Reported' sheet, filled since Sep 2026 - months before that have no data and are left out.
+function renderReported(){
+  function has(m){var r=STORE.data[m]||{};return r.rep_monitored!=null||r.rep_utr_unusual!=null}
+  var d=STORE.data[curMonth]||{},p=prevMonth(),pd=p&&has(p)?STORE.data[p]:null,ms=getMonths().filter(has),lb=ms.map(shortMonth),cd=ms.map(function(m){return STORE.data[m]});
+  var h='';
+  h+='<div class="sec-h"><span class="sec-lbl">Reported Cases</span><span class="sec-line"></span></div>';
+  if(!ms.length){
+    h+='<div class="placeholder">No Reported data for the selected months (the sheet starts in September 2026).</div>';
+    document.getElementById('rep-content').innerHTML=h;return;
+  }
+  h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+  h+=kp('Monitored',fmt(N(d.rep_monitored)),pd?delta(N(d.rep_monitored),N(pd.rep_monitored),p):null);
+  h+=kp('UTR — Unusual',fmt(N(d.rep_utr_unusual)),pd?delta(N(d.rep_utr_unusual),N(pd.rep_utr_unusual),p):null,{color:'#2196F3'});
+  h+='</div>';
+  h+='<div class="cd"><div class="cd-t">Monitored vs UTR — Unusual</div><div style="height:260px"><canvas id="rep-bar"></canvas></div></div>';
+  h+='<div style="margin-top:.65rem"></div><div class="cd"><div class="cd-t">Monthly Data</div><table class="tb"><thead><tr><th>Month</th><th>Monitored</th><th>UTR — Unusual</th></tr></thead><tbody>';
+  var tMon=0,tUtr=0;
+  cd.forEach(function(r,i){tMon+=N(r.rep_monitored);tUtr+=N(r.rep_utr_unusual);h+='<tr><td>'+lb[i]+'</td><td>'+fmt(N(r.rep_monitored))+'</td><td>'+fmt(N(r.rep_utr_unusual))+'</td></tr>'});
+  h+='<tr class="tr"><td>Total</td><td>'+fmt(tMon)+'</td><td>'+fmt(tUtr)+'</td></tr></tbody></table></div>';
+  document.getElementById('rep-content').innerHTML=h;
+  ensureDL();
+  allCharts.push(new Chart(document.getElementById('rep-bar'),{type:'bar',data:{labels:lb,datasets:[bds('Monitored',cd.map(function(r){return N(r.rep_monitored)}),'#2196F3','#90CAF9'),bds('UTR — Unusual',cd.map(function(r){return N(r.rep_utr_unusual)}),'#0D47A1','#5472D3')]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:15,font:{size:11}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
+}
+
 // ═══════ RENDER COMPARE ═══════
 function renderCompare(){
   var a=document.getElementById('cmp-a').value,b=document.getElementById('cmp-b').value,sec=document.getElementById('cmp-section').value;
@@ -1080,11 +1148,11 @@ function cmpSec(d,l,sec){
     h+='<tr><td>False Hit</td><td>'+fmt(N(d.false_hit_entity))+'</td></tr><tr><td>True Hit</td><td>'+fmt(N(d.true_hit_entity))+'</td></tr><tr><td>Generated</td><td>'+fmt(N(d.entity_generated))+'</td></tr></tbody></table></div>';
   } else if(sec==='batch'){
     h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-    h+=kp('Generated',fmt(N(d.batch_generated)),null);h+=kp('Closed',fmt(N(d.batch_closed)),null);
+    h+=kp('Created',fmt(N(d.batch_generated)),null);h+=kp('Closed',fmt(N(d.batch_closed)),null);
     h+=kp('True Hit',fmt(N(d.batch_th_total)),null,null);h+=kp('False Hit',fmt(N(d.batch_total_fh)),null);
     h+='</div>';
-    h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-    h+=kp('PEP',fmt(N(d.batch_th_pep)),null);h+=kp('Crime',fmt(N(d.batch_th_crime)),null);h+=kp('PEP/Crime',fmt(N(d.batch_th_pepcrime)),null);
+    h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
+    h+=kp('PEP',fmt(N(d.batch_th_pep)),null);h+=kp('PEP/Crime',fmt(N(d.batch_th_pepcrime)),null);
     h+='</div>';
     // Scenario table
     h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Detail</div><table class="tb"><thead><tr><th>Scenario</th><th>FH</th><th>TH</th></tr></thead><tbody>';
@@ -1114,7 +1182,7 @@ function switchTabById(id){
   // V2: navigation by tab is gone; the "View detail" links from the Sanction
   // Summary point at sections that, in v2, are filtered. Switch the filter to
   // show only that section so it acts like a "drill-down" intent.
-  var sectionMap={'screening':'sc','remittance':'rem','newsletter':'news','dttot':'dttot','nontms':'nontms'};
+  var sectionMap={'screening':'sc','remittance':'rem','newsletter':'news','dttot':'dttot','reported':'rep','nontms':'nontms'};
   var sId=sectionMap[id]||id;
   var found=V2_SECTIONS.filter(function(s){return s.id===sId})[0];
   if(!found)return;
@@ -1138,6 +1206,7 @@ var V2_SECTIONS=[
   {id:'rem',team:'sanction',label:'Remittance',renderer:function(){renderRemittance()},mountId:'rem-content',group:'san-b'},
   {id:'news',team:'sanction',label:'Newsletter',renderer:function(){renderNewsletter()},mountId:'news-content',group:'san-b'},
   {id:'dttot',team:'sanction',label:'DTTOT',renderer:function(){renderDTTOT()},mountId:'dttot-content',group:null},
+  {id:'rep',team:'sanction',label:'Reported',renderer:function(){renderReported()},mountId:'rep-content',group:null},
   {id:'nontms',team:'nontms',label:'NON TMS',renderer:function(){renderNonTms()},mountId:'ntms-content',group:null},
   {id:'tms-tms',team:'tms',label:'TMS',renderer:function(){renderTms('tms-tms')},mountId:'tms-tms-content',group:null},
   {id:'tms-risknotes',team:'tms',label:'Risk Notes',renderer:function(){renderTms('tms-risknotes')},mountId:'tms-risknotes-content',group:'tms-a'},
@@ -1771,7 +1840,7 @@ function drawSparklines(){
   document.querySelectorAll('.kp-spark').forEach(function(cv){
     var kpEl=cv.closest('.kp');if(!kpEl)return;
     var label=kpEl.querySelector('.kp-l');if(!label)return;
-    var lbl=label.textContent.trim().toLowerCase();
+    var lbl=(label.querySelector('.ii')?label.firstChild.textContent:label.textContent).trim().toLowerCase();
     var vals=getSparkData(lbl,months);
     if(!vals||vals.length<2||vals.every(function(v){return v===0}))return;
     cv.style.display='block';
@@ -1880,7 +1949,9 @@ document.addEventListener('DOMContentLoaded',function(){
   render();
 });
 
-function initBatchFilter(){var s=document.getElementById('batch-mf');if(!s)return;s.innerHTML='<option value="all">All Months</option>';getMonths().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)});s.onchange=function(){var mf=this.value;var scO=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];var ms2=mf==='all'?getMonths():[mf];var t='<table class="tb"><thead><tr><th>Month</th><th style=\"text-align:left\">Scenario</th><th>False Hit</th><th>True Hit</th><th>Manual Close</th><th>System Close</th><th>Auto Close</th><th>Generated</th></tr></thead><tbody>';ms2.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var f=true;scO.forEach(function(n){var v=sc[n];if(v){t+="<tr><td>"+(f?shortMonth(m):"")+"</td><td style=\"text-align:left\">"+n+"</td><td>"+fmt(v.false_hit)+"</td><td>"+fmt(v.true_hit)+"</td><td>"+fmt(v.manually_closed)+"</td><td>"+fmt(N(v.system_closed))+"</td><td>"+fmt(v.automation_closed)+"</td><td>"+fmt(v.alert_generated)+"</td></tr>";f=false}})});t+="</tbody></table>";var parent=s.parentElement.parentElement;var existingTable=parent.querySelector("table");if(existingTable)existingTable.outerHTML=t}}
+// Batch Alert Detail header, with (i) tooltips (INFO texts)
+function batchHead(){return'<thead><tr><th>Month</th><th style="text-align:left">Scenario</th>'+thInfo('False Hit','false_hit')+thInfo('True Hit','true_hit')+thInfo('Manual Close','manual_close')+thInfo('System Close','system_close')+thInfo('Auto Close','auto_close')+thInfo('Created','created')+'</tr></thead>'}
+function initBatchFilter(){var s=document.getElementById('batch-mf');if(!s)return;s.innerHTML='<option value="all">All Months</option>';getMonths().forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;if(m===curMonth)o.selected=true;s.appendChild(o)});s.onchange=function(){var mf=this.value;var scO=['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'];var ms2=mf==='all'?getMonths():[mf];var t='<table class="tb">'+batchHead()+'<tbody>';ms2.forEach(function(m){var r=STORE.data[m]||{};var sc=r.batch_scenarios||{};var f=true;scO.forEach(function(n){var v=sc[n];if(v){t+="<tr><td>"+(f?shortMonth(m):"")+"</td><td style=\"text-align:left\">"+n+"</td><td>"+fmt(v.false_hit)+"</td><td>"+fmt(v.true_hit)+"</td><td>"+fmt(v.manually_closed)+"</td><td>"+fmt(N(v.system_closed))+"</td><td>"+fmt(v.automation_closed)+"</td><td>"+fmt(v.alert_generated)+"</td></tr>";f=false}})});t+="</tbody></table>";var parent=s.parentElement.parentElement;var existingTable=parent.querySelector("table");if(existingTable)existingTable.outerHTML=t}}
 
 // ═══════════════════════════════════════════════════════════
 // NON TMS
