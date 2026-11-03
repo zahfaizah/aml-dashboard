@@ -1,7 +1,7 @@
 {
  "_meta": {
   "team": "Sanction",
-  "updated_at": "2026-11-03 16:26",
+  "updated_at": "2026-11-03 18:02",
   "updated_by": "Faizah Zahrani",
   "source_file": "SS_Dashboard_Data_2026.xlsx",
   "months": [
@@ -2067,8 +2067,8 @@
     "batch_th_total": 369,
     "batch_generated": 110528,
     "batch_closed": 120531,
-    "rem_data_received": 40866,
-    "rem_false_hit": 156,
+    "rem_data_received": 50041,
+    "rem_false_hit": 183,
     "rem_true_hit": 0,
     "rem_hit_rate": 0.4,
     "rem_rows": [
@@ -2085,6 +2085,13 @@
       "false_hit": 44,
       "true_hit": 0,
       "data_received": 12800
+     },
+     {
+      "email_date": "15 Sep 2026",
+      "remittance_data": "Regulatory Report for Espay - Dana  150926",
+      "false_hit": 27,
+      "true_hit": 0,
+      "data_received": 9175
      },
      {
       "email_date": "22 Sep 2026",
