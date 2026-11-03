@@ -1,7 +1,7 @@
 {
  "_meta": {
   "team": "Sanction",
-  "updated_at": "2026-10-06 16:14",
+  "updated_at": "2026-11-03 16:26",
   "updated_by": "Faizah Zahrani",
   "source_file": "SS_Dashboard_Data_2026.xlsx",
   "months": [
@@ -13,7 +13,8 @@
    "June 2026",
    "July 2026",
    "August 2026",
-   "September 2026"
+   "September 2026",
+   "October 2026"
   ]
  },
  "data": {
@@ -26,7 +27,8 @@
    "June 2026",
    "July 2026",
    "August 2026",
-   "September 2026"
+   "September 2026",
+   "October 2026"
   ],
   "data": {
    "January 2026": {
@@ -76,26 +78,26 @@
     "true_hit_rate": 0.34,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
-      "false_hit": 819537,
-      "true_hit": 3541,
-      "manually_closed": 3187,
-      "system_closed": 0,
-      "automation_closed": 296389,
+      "false_hit": 819536,
+      "true_hit": 3535,
+      "manually_closed": 1326,
+      "system_closed": 523502,
+      "automation_closed": 298243,
       "alert_generated": 716675
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 723,
       "true_hit": 1,
-      "manually_closed": 724,
-      "system_closed": 0,
+      "manually_closed": 15,
+      "system_closed": 709,
       "automation_closed": 0,
       "alert_generated": 720
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 204,
       "true_hit": 39,
-      "manually_closed": 243,
-      "system_closed": 0,
+      "manually_closed": 106,
+      "system_closed": 137,
       "automation_closed": 0,
       "alert_generated": 237
      },
@@ -118,24 +120,24 @@
      "BATCH_SANC_INTERNAL_MERCHANT": {
       "false_hit": 3,
       "true_hit": 15,
-      "manually_closed": 18,
-      "system_closed": 0,
+      "manually_closed": 17,
+      "system_closed": 1,
       "automation_closed": 0,
       "alert_generated": 9
      }
     },
-    "batch_total_fh": 820852,
-    "batch_total_th": 3596,
-    "batch_total_mc": 4557,
-    "batch_total_sc": 0,
-    "batch_total_ac": 296389,
+    "batch_total_fh": 820851,
+    "batch_total_th": 3590,
+    "batch_total_mc": 1849,
+    "batch_total_sc": 524349,
+    "batch_total_ac": 298243,
     "batch_total_ag": 718077,
     "batch_th_pep": 1320,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 12,
     "batch_th_total": 1332,
     "batch_generated": 718077,
-    "batch_closed": 300946,
+    "batch_closed": 824441,
     "rem_data_received": 3717,
     "rem_false_hit": 930,
     "rem_true_hit": 0,
@@ -312,34 +314,34 @@
     "true_hit_rate": 0.33,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
-      "false_hit": 245694,
-      "true_hit": 1697,
-      "manually_closed": 2872,
-      "system_closed": 0,
-      "automation_closed": 236295,
+      "false_hit": 245479,
+      "true_hit": 1677,
+      "manually_closed": 1632,
+      "system_closed": 8224,
+      "automation_closed": 237300,
       "alert_generated": 50724
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 743,
       "true_hit": 0,
-      "manually_closed": 743,
-      "system_closed": 0,
+      "manually_closed": 736,
+      "system_closed": 7,
       "automation_closed": 0,
-      "alert_generated": 1486
+      "alert_generated": 743
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
-      "false_hit": 144,
+      "false_hit": 143,
       "true_hit": 43,
-      "manually_closed": 187,
-      "system_closed": 0,
+      "manually_closed": 126,
+      "system_closed": 60,
       "automation_closed": 0,
       "alert_generated": 182
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 337,
       "true_hit": 5,
-      "manually_closed": 342,
-      "system_closed": 0,
+      "manually_closed": 245,
+      "system_closed": 97,
       "automation_closed": 0,
       "alert_generated": 290
      },
@@ -360,18 +362,18 @@
       "alert_generated": 8
      }
     },
-    "batch_total_fh": 246921,
-    "batch_total_th": 1751,
-    "batch_total_mc": 4153,
-    "batch_total_sc": 0,
-    "batch_total_ac": 236295,
-    "batch_total_ag": 52691,
+    "batch_total_fh": 246705,
+    "batch_total_th": 1731,
+    "batch_total_mc": 2748,
+    "batch_total_sc": 8388,
+    "batch_total_ac": 237300,
+    "batch_total_ag": 51948,
     "batch_th_pep": 1623,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 29,
     "batch_th_total": 1652,
-    "batch_generated": 52691,
-    "batch_closed": 240448,
+    "batch_generated": 51948,
+    "batch_closed": 248436,
     "rem_data_received": 23613,
     "rem_false_hit": 1432,
     "rem_true_hit": 3,
@@ -555,34 +557,34 @@
     "true_hit_rate": 0.37,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
-      "false_hit": 130403,
-      "true_hit": 1213,
-      "manually_closed": 14661,
-      "system_closed": 0,
-      "automation_closed": 52410,
+      "false_hit": 130396,
+      "true_hit": 1118,
+      "manually_closed": 636,
+      "system_closed": 68549,
+      "automation_closed": 62329,
       "alert_generated": 134274
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 594,
       "true_hit": 2,
-      "manually_closed": 596,
-      "system_closed": 0,
+      "manually_closed": 486,
+      "system_closed": 110,
       "automation_closed": 0,
       "alert_generated": 595
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 350,
       "true_hit": 13,
-      "manually_closed": 363,
-      "system_closed": 0,
+      "manually_closed": 338,
+      "system_closed": 25,
       "automation_closed": 0,
       "alert_generated": 363
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 154,
       "true_hit": 0,
-      "manually_closed": 154,
-      "system_closed": 0,
+      "manually_closed": 141,
+      "system_closed": 13,
       "automation_closed": 0,
       "alert_generated": 154
      },
@@ -603,18 +605,18 @@
       "alert_generated": 0
      }
     },
-    "batch_total_fh": 131502,
-    "batch_total_th": 1228,
-    "batch_total_mc": 15775,
-    "batch_total_sc": 0,
-    "batch_total_ac": 52410,
+    "batch_total_fh": 131495,
+    "batch_total_th": 1133,
+    "batch_total_mc": 1602,
+    "batch_total_sc": 68697,
+    "batch_total_ac": 62329,
     "batch_total_ag": 135387,
     "batch_th_pep": 704,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 25,
     "batch_th_total": 729,
     "batch_generated": 135387,
-    "batch_closed": 68185,
+    "batch_closed": 132628,
     "rem_data_received": 47544,
     "rem_false_hit": 5790,
     "rem_true_hit": 5,
@@ -774,10 +776,10 @@
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
       "false_hit": 4016,
-      "true_hit": 299,
-      "manually_closed": 4315,
+      "true_hit": 292,
+      "manually_closed": 292,
       "system_closed": 0,
-      "automation_closed": 0,
+      "automation_closed": 4016,
       "alert_generated": 0
      },
      "BATCH_SANC_INDIVIDUAL": {
@@ -822,17 +824,17 @@
      }
     },
     "batch_total_fh": 4016,
-    "batch_total_th": 299,
-    "batch_total_mc": 4315,
+    "batch_total_th": 292,
+    "batch_total_mc": 292,
     "batch_total_sc": 0,
-    "batch_total_ac": 0,
+    "batch_total_ac": 4016,
     "batch_total_ag": 0,
     "batch_th_pep": 294,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 5,
     "batch_th_total": 299,
     "batch_generated": 0,
-    "batch_closed": 4315,
+    "batch_closed": 4308,
     "rem_data_received": 34200,
     "rem_false_hit": 3179,
     "rem_true_hit": 1,
@@ -995,8 +997,8 @@
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
       "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
+      "true_hit": 1,
+      "manually_closed": 1,
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
@@ -1043,8 +1045,8 @@
      }
     },
     "batch_total_fh": 0,
-    "batch_total_th": 0,
-    "batch_total_mc": 0,
+    "batch_total_th": 1,
+    "batch_total_mc": 1,
     "batch_total_sc": 0,
     "batch_total_ac": 0,
     "batch_total_ag": 0,
@@ -1052,6 +1054,8 @@
     "batch_th_crime": 0,
     "batch_th_pepcrime": 0,
     "batch_th_total": 1,
+    "batch_generated": 0,
+    "batch_closed": 1,
     "rem_data_received": 27354,
     "rem_false_hit": 846,
     "rem_true_hit": 1,
@@ -1238,11 +1242,11 @@
     "true_hit_rate": 0.25,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
+      "false_hit": 2,
+      "true_hit": 1,
+      "manually_closed": 1,
       "system_closed": 0,
-      "automation_closed": 0,
+      "automation_closed": 2,
       "alert_generated": 0
      },
      "BATCH_SANC_INDIVIDUAL": {
@@ -1286,30 +1290,32 @@
       "alert_generated": 0
      }
     },
-    "batch_total_fh": 0,
-    "batch_total_th": 0,
-    "batch_total_mc": 0,
+    "batch_total_fh": 2,
+    "batch_total_th": 1,
+    "batch_total_mc": 1,
     "batch_total_sc": 0,
-    "batch_total_ac": 0,
+    "batch_total_ac": 2,
     "batch_total_ag": 0,
     "batch_th_pep": 24,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 3,
     "batch_th_total": 27,
+    "batch_generated": 0,
+    "batch_closed": 3,
     "rem_data_received": 39989,
     "rem_false_hit": 2067,
     "rem_true_hit": 0,
     "rem_hit_rate": 5.2,
     "rem_rows": [
      {
-      "email_date": "06 Feb 2026",
+      "email_date": "02 Jun 2026",
       "remittance_data": "Regulatory Report for Espay - Dana 020626",
       "false_hit": 268,
       "true_hit": 0,
       "data_received": 8994
      },
      {
-      "email_date": "06 Sep 2026",
+      "email_date": "09 Jun 2026",
       "remittance_data": "Regulatory Report for Espay - Dana 090626",
       "false_hit": 219,
       "true_hit": 0,
@@ -1491,32 +1497,32 @@
      "BATCH_PEP_INDIVIDUAL": {
       "false_hit": 181192,
       "true_hit": 328,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 181192,
-      "alert_generated": 196341
+      "manually_closed": 1,
+      "system_closed": 49160,
+      "automation_closed": 132359,
+      "alert_generated": 196023
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 837,
       "true_hit": 2,
-      "manually_closed": 839,
-      "system_closed": 0,
+      "manually_closed": 251,
+      "system_closed": 588,
       "automation_closed": 0,
       "alert_generated": 839
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 134,
       "true_hit": 82,
-      "manually_closed": 216,
-      "system_closed": 0,
+      "manually_closed": 45,
+      "system_closed": 171,
       "automation_closed": 0,
       "alert_generated": 216
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 962,
       "true_hit": 3,
-      "manually_closed": 965,
-      "system_closed": 0,
+      "manually_closed": 901,
+      "system_closed": 64,
       "automation_closed": 0,
       "alert_generated": 965
      },
@@ -1539,16 +1545,16 @@
     },
     "batch_total_fh": 183369,
     "batch_total_th": 442,
-    "batch_total_mc": 2291,
-    "batch_total_sc": 0,
-    "batch_total_ac": 181192,
-    "batch_total_ag": 198632,
+    "batch_total_mc": 1469,
+    "batch_total_sc": 49983,
+    "batch_total_ac": 132359,
+    "batch_total_ag": 198314,
     "batch_th_pep": 319,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 9,
     "batch_th_total": 328,
-    "batch_generated": 198632,
-    "batch_closed": 183483,
+    "batch_generated": 198314,
+    "batch_closed": 183811,
     "rem_data_received": 34564,
     "rem_false_hit": 868,
     "rem_true_hit": 0,
@@ -1730,42 +1736,42 @@
     "true_hit_rate": 0.17,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
-      "false_hit": 195526,
-      "true_hit": 184,
-      "manually_closed": 184,
-      "system_closed": 0,
-      "automation_closed": 195526,
-      "alert_generated": 196066
+      "false_hit": 199880,
+      "true_hit": 709,
+      "manually_closed": 552,
+      "system_closed": 33678,
+      "automation_closed": 166359,
+      "alert_generated": 196044
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 845,
       "true_hit": 1,
-      "manually_closed": 845,
-      "system_closed": 0,
+      "manually_closed": 224,
+      "system_closed": 622,
       "automation_closed": 0,
       "alert_generated": 846
      },
      "BATCH_INTERNAL_INDIVIDUAL": {
       "false_hit": 33,
       "true_hit": 24,
-      "manually_closed": 57,
-      "system_closed": 0,
+      "manually_closed": 16,
+      "system_closed": 41,
       "automation_closed": 0,
       "alert_generated": 57
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 477,
       "true_hit": 0,
-      "manually_closed": 477,
-      "system_closed": 0,
+      "manually_closed": 474,
+      "system_closed": 3,
       "automation_closed": 0,
       "alert_generated": 477
      },
      "BATCH_SANC_MERCHANT": {
       "false_hit": 203,
       "true_hit": 0,
-      "manually_closed": 203,
-      "system_closed": 0,
+      "manually_closed": 53,
+      "system_closed": 150,
       "automation_closed": 0,
       "alert_generated": 203
      },
@@ -1778,18 +1784,18 @@
       "alert_generated": 21
      }
     },
-    "batch_total_fh": 197085,
-    "batch_total_th": 229,
-    "batch_total_mc": 1787,
-    "batch_total_sc": 0,
-    "batch_total_ac": 195526,
-    "batch_total_ag": 197670,
+    "batch_total_fh": 201439,
+    "batch_total_th": 754,
+    "batch_total_mc": 1340,
+    "batch_total_sc": 34494,
+    "batch_total_ac": 166359,
+    "batch_total_ag": 197648,
     "batch_th_pep": 533,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 19,
     "batch_th_total": 552,
-    "batch_generated": 197670,
-    "batch_closed": 197313,
+    "batch_generated": 197648,
+    "batch_closed": 202193,
     "rem_data_received": 55660,
     "rem_false_hit": 261,
     "rem_true_hit": 0,
@@ -2002,16 +2008,16 @@
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
       "false_hit": 118364,
-      "true_hit": 369,
+      "true_hit": 478,
       "manually_closed": 369,
       "system_closed": 33991,
-      "automation_closed": 84373,
-      "alert_generated": 118843
+      "automation_closed": 84482,
+      "alert_generated": 108840
      },
      "BATCH_SANC_INDIVIDUAL": {
       "false_hit": 896,
       "true_hit": 1,
-      "manually_closed": 785,
+      "manually_closed": 786,
       "system_closed": 111,
       "automation_closed": 0,
       "alert_generated": 897
@@ -2022,7 +2028,7 @@
       "manually_closed": 24,
       "system_closed": 50,
       "automation_closed": 0,
-      "alert_generated": 74
+      "alert_generated": 73
      },
      "BATCH_PEP_MERCHANT": {
       "false_hit": 632,
@@ -2050,17 +2056,17 @@
      }
     },
     "batch_total_fh": 120025,
-    "batch_total_th": 397,
-    "batch_total_mc": 1894,
+    "batch_total_th": 506,
+    "batch_total_mc": 1895,
     "batch_total_sc": 34154,
-    "batch_total_ac": 84373,
-    "batch_total_ag": 120532,
+    "batch_total_ac": 84482,
+    "batch_total_ag": 110528,
     "batch_th_pep": 354,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 15,
     "batch_th_total": 369,
-    "batch_generated": 120532,
-    "batch_closed": 120421,
+    "batch_generated": 110528,
+    "batch_closed": 120531,
     "rem_data_received": 40866,
     "rem_false_hit": 156,
     "rem_true_hit": 0,
@@ -2213,12 +2219,248 @@
       "subject": "AMLnewsletter_280926",
       "recorded_names": 4
      }
-    ]
+    ],
+    "rep_monitored": 14,
+    "rep_utr_unusual": 11
+   },
+   "October 2026": {
+    "alert_pep": 3039,
+    "alert_sanction": 12961,
+    "alert_internal": 2884,
+    "alert_multitype": 146,
+    "total_alerts": 19030,
+    "true_hit_indiv": 23,
+    "true_hit_entity": 1,
+    "true_hit_total": 24,
+    "false_hit_indiv": 5580,
+    "false_hit_entity": 13426,
+    "indiv_fh": {
+     "PEP": 2448,
+     "Sanction": 174,
+     "Internal List": 2876,
+     "Multitype": 82
+    },
+    "indiv_th": {
+     "PEP": 18,
+     "Sanction": 0,
+     "Internal List": 5,
+     "Multitype": 0
+    },
+    "entity_fh": {
+     "PEP": 572,
+     "Sanction": 12787,
+     "Internal List": 3,
+     "Multitype": 64
+    },
+    "entity_th": {
+     "PEP": 1,
+     "Sanction": 0,
+     "Internal List": 0,
+     "Multitype": 0
+    },
+    "indiv_generated": 5603,
+    "entity_generated": 13427,
+    "indiv_fh_total": 5580,
+    "indiv_th_total": 23,
+    "entity_fh_total": 13426,
+    "entity_th_total": 1,
+    "rt_generated": 19030,
+    "rt_closed": 19030,
+    "closure_rate": 100.0,
+    "true_hit_rate": 0.13,
+    "batch_scenarios": {
+     "BATCH_PEP_INDIVIDUAL": {
+      "false_hit": 89014,
+      "true_hit": 272,
+      "manually_closed": 141,
+      "system_closed": 23720,
+      "automation_closed": 65425,
+      "alert_generated": 89285
+     },
+     "BATCH_SANC_INDIVIDUAL": {
+      "false_hit": 494,
+      "true_hit": 1,
+      "manually_closed": 486,
+      "system_closed": 9,
+      "automation_closed": 0,
+      "alert_generated": 495
+     },
+     "BATCH_INTERNAL_INDIVIDUAL": {
+      "false_hit": 161,
+      "true_hit": 6,
+      "manually_closed": 142,
+      "system_closed": 25,
+      "automation_closed": 0,
+      "alert_generated": 167
+     },
+     "BATCH_PEP_MERCHANT": {
+      "false_hit": 651,
+      "true_hit": 1,
+      "manually_closed": 652,
+      "system_closed": 0,
+      "automation_closed": 0,
+      "alert_generated": 652
+     },
+     "BATCH_SANC_MERCHANT": {
+      "false_hit": 110,
+      "true_hit": 0,
+      "manually_closed": 80,
+      "system_closed": 30,
+      "automation_closed": 0,
+      "alert_generated": 110
+     },
+     "BATCH_SANC_INTERNAL_MERCHANT": {
+      "false_hit": 3,
+      "true_hit": 13,
+      "manually_closed": 16,
+      "system_closed": 0,
+      "automation_closed": 0,
+      "alert_generated": 16
+     }
+    },
+    "batch_total_fh": 90433,
+    "batch_total_th": 293,
+    "batch_total_mc": 1517,
+    "batch_total_sc": 23784,
+    "batch_total_ac": 65425,
+    "batch_total_ag": 90725,
+    "batch_th_pep": 262,
+    "batch_th_crime": 0,
+    "batch_th_pepcrime": 10,
+    "batch_th_total": 272,
+    "batch_generated": 90725,
+    "batch_closed": 90726,
+    "rem_data_received": 52252,
+    "rem_false_hit": 209,
+    "rem_true_hit": 0,
+    "rem_hit_rate": 0.4,
+    "rem_rows": [
+     {
+      "email_date": "06 Oct 2026",
+      "remittance_data": "Regulatory Report for Espay - Dana  091026",
+      "false_hit": 63,
+      "true_hit": 0,
+      "data_received": 15533
+     },
+     {
+      "email_date": "13 Oct 2026",
+      "remittance_data": "Regulatory Report for Espay - Dana  131026",
+      "false_hit": 38,
+      "true_hit": 0,
+      "data_received": 10832
+     },
+     {
+      "email_date": "20 Oct 2026",
+      "remittance_data": "Regulatory Report for Espay - Dana  201026",
+      "false_hit": 72,
+      "true_hit": 0,
+      "data_received": 13626
+     },
+     {
+      "email_date": "27 Oct 2026",
+      "remittance_data": "Regulatory Report for Espay - Dana  271026",
+      "false_hit": 36,
+      "true_hit": 0,
+      "data_received": 12261
+     }
+    ],
+    "news_total": 34,
+    "news_count": 17,
+    "news_avg": 2.0,
+    "news_rows": [
+     {
+      "email_date": "06 Oct 2026",
+      "subject": "AMLnewsletter_021026",
+      "recorded_names": 1
+     },
+     {
+      "email_date": "06 Oct 2026",
+      "subject": "AMLnewsletter_051026",
+      "recorded_names": 1
+     },
+     {
+      "email_date": "06 Oct 2026",
+      "subject": "AMLnewsletter_061026",
+      "recorded_names": 2
+     },
+     {
+      "email_date": "08 Oct 2026",
+      "subject": "AMLnewsletter_071026",
+      "recorded_names": 0
+     },
+     {
+      "email_date": "09 Oct 2026",
+      "subject": "AMLnewsletter_081026",
+      "recorded_names": 0
+     },
+     {
+      "email_date": "14 Oct 2026",
+      "subject": "AMLnewsletter_091026",
+      "recorded_names": 1
+     },
+     {
+      "email_date": "14 Oct 2026",
+      "subject": "AMLnewsletter_121026",
+      "recorded_names": 4
+     },
+     {
+      "email_date": "14 Oct 2026",
+      "subject": "AMLnewsletter_131026",
+      "recorded_names": 12
+     },
+     {
+      "email_date": "19 Oct 2026",
+      "subject": "AMLnewsletter_141026",
+      "recorded_names": 0
+     },
+     {
+      "email_date": "19 Oct 2026",
+      "subject": "AMLnewsletter_151026",
+      "recorded_names": 5
+     },
+     {
+      "email_date": "20 Oct 2026",
+      "subject": "AMLnewsletter_161026",
+      "recorded_names": 2
+     },
+     {
+      "email_date": "20 Oct 2026",
+      "subject": "AMLnewsletter_191026",
+      "recorded_names": 1
+     },
+     {
+      "email_date": "20 Oct 2026",
+      "subject": "AMLnewsletter_201026",
+      "recorded_names": 0
+     },
+     {
+      "email_date": "22 Oct 2026",
+      "subject": "AMLnewsletter_211026",
+      "recorded_names": 0
+     },
+     {
+      "email_date": "22 Oct 2026",
+      "subject": "AMLnewsletter_221026",
+      "recorded_names": 3
+     },
+     {
+      "email_date": "28 Oct 2026",
+      "subject": "AMLnewsletter_231026",
+      "recorded_names": 2
+     },
+     {
+      "email_date": "28 Oct 2026",
+      "subject": "AMLnewsletter_261026",
+      "recorded_names": 0
+     }
+    ],
+    "rep_monitored": 6,
+    "rep_utr_unusual": 2
    }
   },
   "dttot": {
-   "total_names": 32,
-   "total_updates": 18,
+   "total_names": 36,
+   "total_updates": 20,
    "rows": [
     {
      "email_date": "11 Apr 2025",
@@ -2252,7 +2494,7 @@
     },
     {
      "email_date": "12 Jan 2026",
-     "dttot_number": "DTTOT 20260105",
+     "dttot_number": "DTTOT20260105",
      "recorded_names": 2
     },
     {
@@ -2309,6 +2551,16 @@
      "email_date": "01 Sep 2026",
      "dttot_number": "Null",
      "recorded_names": 0
+    },
+    {
+     "email_date": "15 Oct 2026",
+     "dttot_number": "DTTOT P-24.a",
+     "recorded_names": 2
+    },
+    {
+     "email_date": "15 Oct 2026",
+     "dttot_number": "DTTOT P-25 RENEWAL",
+     "recorded_names": 2
     }
    ]
   }
