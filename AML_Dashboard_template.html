@@ -2152,8 +2152,8 @@ function renderNewsletter(){
 
 // ═══════ RENDER DTTOT ═══════
 function renderDTTOT(){
-  // Updates only: the names per update and their charts were taken off on 2026-11-04 (a copy of that version is in
-  // backup/AML_Dashboard_template_dttot_with_names_*.html, and in git before this change).
+  // The names-per-update bars and the log's Names column were taken off on 2026-11-04 (a copy of that version is in
+  // backup/AML_Dashboard_template_dttot_with_names_*.html, and in git before this change); the names trend stays.
   var dt=STORE.dttot,last=dt.rows[dt.rows.length-1];
   var h='';
   h+='<div class="sec-h"><span class="sec-lbl">DTTOT Update</span><span class="sec-line"></span></div>';
@@ -2161,10 +2161,14 @@ function renderDTTOT(){
   h+=kp('Total Updates Received',String(dt.total_updates),null);
   h+=kp('Latest Update',last?last.email_date:'–',null);
   h+='</div>';
+  h+='<div id="dttot-trend"></div>';
   h+=detailBlock('dp-dttot','DTTOT Log','<div id="dttot-log"></div>');
   document.getElementById('dttot-content').innerHTML=h;
   renderDttotLog();
-  toggleDetail('dp-dttot');   // the log is the tab's content now: open to start
+  var dp=function(r){return String(r.email_date).split(' ')},labels=dt.rows.map(function(r){var p=dp(r);return p[0]+' '+p[1]}),tips=dt.rows.map(function(r){return r.dttot_number});
+  var cum=0,cv=dt.rows.map(function(r){cum+=N(r.recorded_names);return cum});
+  lineCard('dttot-trend',{title:'Recorded Names Trend',height:240,labels:labels,tips:tips,modes:[{label:'Cumulative',noun:'names to date',vals:cv,fmt:fmt,color:CL.blue}],
+    foot:function(i){return'<b>'+fmt(N(dt.rows[i].recorded_names))+'</b> new · received '+dt.rows[i].email_date}});
 }
 
 // ═══════ RENDER REPORTED ═══════
