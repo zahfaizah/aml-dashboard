@@ -2104,7 +2104,7 @@ function renderRemittance(){
 
 // ── Newsletter and DTTOT logs ──
 // Each log has a Month dropdown (the newsletter one starts on the dashboard month, the DTTOT one on all months, since
-// DTTOT updates are sporadic).
+// DTTOT updates are sporadic). The DTTOT log lists updates only (date and number).
 var newsMonth=null,dttotMonth='all';
 var MON_FULL={Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December'};
 function monthOfDate(d){var p=String(d).split(' ');return(MON_FULL[p[1]]||p[1])+' '+p[2]}
@@ -2123,10 +2123,8 @@ function renderDttotLog(){
   var dt=STORE.dttot,ms=[];dt.rows.forEach(function(r){var m=monthOfDate(r.email_date);if(ms.indexOf(m)<0)ms.push(m)});
   if(dttotMonth!=='all'&&ms.indexOf(dttotMonth)<0)dttotMonth='all';
   var rows=dt.rows.filter(function(r){return dttotMonth==='all'||monthOfDate(r.email_date)===dttotMonth});
-  var tot=rows.reduce(function(a,r){return a+N(r.recorded_names)},0);
   el.innerHTML='<div class="ht-bar"><div id="dttot-mdd"></div></div>'+
-    htTable(['Email Date','DTTOT Number','Names'],rows.map(function(r){return[r.email_date,r.dttot_number,N(r.recorded_names)]}),[null,'',tot],
-      {left:[0,1],widths:['25%','45%','30%'],totTip:'Names from '+rows.length+' DTTOT update'+(rows.length===1?'':'s')+(dttotMonth==='all'?'':' in '+dttotMonth)+'.'});
+    htTable(['Email Date','DTTOT Number'],rows.map(function(r){return[r.email_date,r.dttot_number]}),null,{left:[0,1],widths:['30%','70%']});
   scenarioDropdown('dttot-mdd',[{k:'all',l:'All months'}].concat(ms.map(function(m){return{k:m,l:m}})),dttotMonth,function(k){dttotMonth=k;renderDttotLog()},'Month');
 }
 
@@ -2155,23 +2153,19 @@ function renderNewsletter(){
 
 // ═══════ RENDER DTTOT ═══════
 function renderDTTOT(){
-  var dt=STORE.dttot;
+  // Updates only: the names per update and their charts were taken off on 2026-11-04 (a copy of that version is in
+  // backup/AML_Dashboard_template_dttot_with_names_*.html, and in git before this change).
+  var dt=STORE.dttot,last=dt.rows[dt.rows.length-1];
   var h='';
   h+='<div class="sec-h"><span class="sec-lbl">DTTOT Update</span><span class="sec-line"></span></div>';
   h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-  h+=kp('Total Recorded Names',String(dt.total_names),null);
   h+=kp('Total Updates Received',String(dt.total_updates),null);
+  h+=kp('Latest Update',last?last.email_date:'–',null);
   h+='</div>';
-  h+='<div class="cr c2e"><div id="dttot-bar"></div><div id="dttot-trend"></div></div>';
   h+=detailBlock('dp-dttot','DTTOT Log','<div id="dttot-log"></div>');
   document.getElementById('dttot-content').innerHTML=h;
   renderDttotLog();
-  var dp=function(r){return String(r.email_date).split(' ')},labels=dt.rows.map(function(r){var p=dp(r);return p[0]+' '+p[1]}),years=dt.rows.map(function(r){return dp(r)[2]}),tips=dt.rows.map(function(r){return r.dttot_number});
-  simpleBars('dttot-bar',{title:'Updates over Time',height:240,round:true,labels:labels,groups:years,tips:tips,vals:dt.rows.map(function(r){return N(r.recorded_names)}),color:CL.blue,noun:'names',
-    sel:dt.rows.length-1,foot:function(i){return'Received <b>'+dt.rows[i].email_date+'</b>'}});
-  var cum=0,cv=dt.rows.map(function(r){cum+=N(r.recorded_names);return cum});
-  lineCard('dttot-trend',{title:'Recorded Names Trend',height:240,labels:labels,tips:tips,modes:[{label:'Cumulative',noun:'names to date',vals:cv,fmt:fmt,color:CL.blue}],
-    foot:function(i){return'<b>'+fmt(N(dt.rows[i].recorded_names))+'</b> new · received '+dt.rows[i].email_date}});
+  toggleDetail('dp-dttot');   // the log is the tab's content now: open to start
 }
 
 // ═══════ RENDER REPORTED ═══════
