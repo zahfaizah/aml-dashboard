@@ -1057,6 +1057,9 @@ function trendPanels(mountId,cfg){
   panels.forEach(function(pn,p){
     var sc=pn.querySelector('.tp-scrub');
     sc.addEventListener('pointermove',function(e){var i=at(pn,e);if(i!==hover||tipPanel!==p){hover=i;tipPanel=p;paint()}});
+    // one month: entering a panel replays the bars' fill-up, since there's no other month for the fill to move to
+    sc.addEventListener('pointerenter',function(){if(n!==1||still)return;
+      [].forEach.call(wrap.querySelectorAll('.tp-bar'),function(g){if(g._raf)cancelAnimationFrame(g._raf);g._raf=0;g._lv=0;g._to=0;setLevel(g)});paint()});
     sc.addEventListener('pointerleave',function(){hover=null;if(document.activeElement!==sc||!sc.matches(':focus-visible'))tipPanel=-1;paint()});
     sc.addEventListener('pointerup',function(e){if(e.button!==0)return;var i=at(pn,e);pinned=pinned===i?null:i;paint()});
     sc.addEventListener('keydown',function(e){
@@ -1215,6 +1218,8 @@ function isoStack(mountId,cfg){
   function local(e){var r=plot.getBoundingClientRect();return e.clientX-r.left}
   function blockAt(m,x,y){var c=G[m];if(m!==active()||levels[m]<1||Math.abs(x-c.cx)>c.hw)return null;
     for(var k=K-1;k>=0;k--){var sg=c.segs[k],dy=c.t*(1-Math.abs(x-c.cx)/c.hw);if(sg.bot-sg.top>.01&&y>=sg.top-1+dy&&y<=sg.bot+1+dy)return k}return null}
+  // one month: entering the chart replays the column filling up from its dashed outline
+  scrub.addEventListener('pointerenter',function(){if(n!==1||still||entering)return;if(lvRaf[0])cancelAnimationFrame(lvRaf[0]);lvRaf[0]=0;levels[0]=0;lvTo[0]=0;drawCol(0);paint()});
   scrub.addEventListener('pointermove',function(e){var r=plot.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,m=monthAt(x),b=blockAt(m,x,y);
     if(m!==hover||b!==lit||!tipOn){hover=m;lit=b;tipOn=true;paint()}});
   scrub.addEventListener('pointerleave',function(){hover=null;lit=null;tipOn=scrub.matches(':focus-visible');paint()});
@@ -1471,6 +1476,8 @@ function stackFlow(mountId,cfg){
     modeBtns.forEach(function(x,i){x.setAttribute('aria-pressed',String(i===j))});recolor();relayout(true)})});
   function local(e){var r=plot.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
   scrub.addEventListener('pointermove',function(e){var q=local(e),m=monthAt(q.x),s=seriesAt(q.x,q.y);if(m!==hover||s!==pointed||!tipOn){hover=m;pointed=s;tipOn=true;paint()}});
+  // one month: entering the chart replays the bar's fill-up
+  scrub.addEventListener('pointerenter',function(){if(n!==1||still||entering)return;if(lvRaf[0])cancelAnimationFrame(lvRaf[0]);lvRaf[0]=0;levels[0]=0;lvTo[0]=0;draw(shownFrame);paint()});
   scrub.addEventListener('pointerleave',function(){hover=null;pointed=null;tipOn=scrub.matches(':focus-visible');paint()});
   scrub.addEventListener('pointerup',function(e){if(e.button!==0)return;var m=monthAt(local(e).x);pinned=pinned===m?null:m;paint()});
   scrub.addEventListener('keydown',function(e){
@@ -2577,8 +2584,9 @@ document.addEventListener('mousedown',function(e){
 });
 
 // ── Build popover contents (full rebuild — only on first open) ──
-// Period: the months of the year as a grid (months without data greyed); a click picks that month, a second click
-// picks everything from the first to it, a third starts again. Presets beside it pick common windows.
+// Period: the months of the year as a grid (months without data greyed). Nothing picked = all months. A click adds or
+// removes that month (pick as many as you like); Shift-click picks every month from the last one clicked to it.
+// Presets beside it pick common windows.
 var _fbAnchor=null;
 var FB_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function v3SetMonths(list){
@@ -2586,10 +2594,13 @@ function v3SetMonths(list){
   if(list.length&&list.length<STORE.months.length)list.forEach(function(m){ref.add(m)});
   v3UpdateTriggerLabels();v2BuildPills();if(_openPop==='period')v3BuildPeriodPop();_debouncedRender();
 }
-function v3PickMonth(m){
-  var ms=STORE.months;
-  if(_fbAnchor==null||ms.indexOf(_fbAnchor)<0){_fbAnchor=m;v3SetMonths([m]);return}
-  var a=ms.indexOf(_fbAnchor),b=ms.indexOf(m),lo=Math.min(a,b),hi=Math.max(a,b);_fbAnchor=null;v3SetMonths(ms.slice(lo,hi+1));
+function v3PickMonth(m,ev){
+  var ms=STORE.months,cur=v3IsAllMonths()?[]:v3PickedMonths().slice();
+  if(ev&&ev.shiftKey&&_fbAnchor!=null&&ms.indexOf(_fbAnchor)>=0){
+    var a=ms.indexOf(_fbAnchor),b=ms.indexOf(m);ms.slice(Math.min(a,b),Math.max(a,b)+1).forEach(function(x){if(cur.indexOf(x)<0)cur.push(x)});
+  } else {var i=cur.indexOf(m);if(i>=0)cur.splice(i,1);else cur.push(m)}
+  _fbAnchor=m;
+  v3SetMonths(ms.filter(function(x){return cur.indexOf(x)>=0}));
 }
 function v3PresetMonths(k){
   var ms=STORE.months,last=ms.length-1;_fbAnchor=null;
@@ -2609,10 +2620,10 @@ function v3BuildPeriodPop(){
     h+='<div class="fb-yr">'+y+'</div><div class="fb-grid" style="margin-bottom:.6rem">';
     FB_MON.forEach(function(mn,i){var full=['January','February','March','April','May','June','July','August','September','October','November','December'][i]+' '+y,k=ms.indexOf(full);
       if(k<0){h+='<button class="fb-m" disabled>'+mn+'</button>';return}
-      var on=!all&&picks.indexOf(full)>=0,end=on&&contig&&(k===lo||k===hi),cls=!on?'':(end||!contig?'end':'in');
-      h+='<button class="fb-m '+cls+'" onclick="v3PickMonth(\''+full+'\')" aria-pressed="'+on+'">'+mn+'</button>'});
+      var on=!all&&picks.indexOf(full)>=0;
+      h+='<button class="fb-m'+(on?' end':'')+'" onclick="v3PickMonth(\''+full+'\',event)" aria-pressed="'+on+'">'+mn+'</button>'});
     h+='</div>'});
-  h+='<div class="fb-hint">'+(_fbAnchor?'Now pick the last month':'Click a month, or a start and an end')+'</div></div>';
+  h+='<div class="fb-hint">'+(all?'Click months to pick them':'Click to add or remove · Shift-click for a range')+'</div></div>';
   var last=ms.length-1,isLastN=function(n){return!all&&contig&&hi===last&&picks.length===n};
   var pre=[['this','This month',isLastN(1)],['3','Last 3 months',isLastN(3)],['6','Last 6 months',isLastN(6)],['all','All months',all]];
   h+='<div class="fb-pre">'+pre.map(function(p){return'<button class="fb-chip'+(p[2]?' on':'')+'" onclick="v3PresetMonths(\''+p[0]+'\')">'+p[1]+'</button>'}).join('')+'</div></div>';
@@ -2620,21 +2631,34 @@ function v3BuildPeriodPop(){
 }
 function v3RefreshPeriodCheckboxes(){if(_openPop==='period')v3BuildPeriodPop()}
 
-// Sections: each team is a row of chips in the team's own colour (Sanction blue, NON TMS blue-grey, TMS teal, as on the
-// section badges); a chip shows or hides its section, and each team has Select all / Clear.
+// Sections: each team is a row of chips. You pick what you want to see: with nothing picked every section shows and
+// no chip is coloured; a picked chip takes its team's colour (Sanction blue, NON TMS blue-grey, TMS teal, as on the
+// section badges) and only the picked sections show. Each team has Select all / Clear.
+function v3PickSection(id){
+  var ref=v2State.activeSections;v2State.sectionsExplicitEmpty=false;
+  if(ref.has(id))ref.delete(id);else ref.add(id);
+  if(ref.size===V2_SECTIONS.length)ref.clear();
+  v3UpdateTriggerLabels();v2BuildPills();v3RefreshSectionCheckboxes();_debouncedRender();
+}
+function v3PickTeam(tid){
+  var ref=v2State.activeSections,team=v2TeamSections(tid),all=team.every(function(x){return ref.has(x.id)});v2State.sectionsExplicitEmpty=false;
+  team.forEach(function(x){if(all)ref.delete(x.id);else ref.add(x.id)});
+  if(ref.size===V2_SECTIONS.length)ref.clear();
+  v3UpdateTriggerLabels();v2BuildPills();v3RefreshSectionCheckboxes();_debouncedRender();
+}
 function v3BuildSectionsPop(){
   var el=document.getElementById('v3-pop-sections');if(!el)return;
   el.classList.add('fb-pop');
-  var ref=v2State.activeSections,allOn=ref.size===0&&!v2State.sectionsExplicitEmpty;
-  var shown=v2State.sectionsExplicitEmpty?0:(ref.size===0?V2_SECTIONS.length:ref.size);
+  var ref=v2State.activeSections;
   var h='<div class="fb-secs" onmousedown="event.stopPropagation()">';
   V2_TEAMS.forEach(function(t){
     var team=v2TeamSections(t.id);if(!team.length)return;
-    var st=v2TeamCheckState(t.id);
-    h+='<div class="fb-team fb-t-'+t.id+'"><div class="fb-th"><b><i></i>'+t.label+'</b><button onclick="v2ToggleTeam(\''+t.id+'\')">'+(st==='on'?'Clear':'Select all')+'</button></div><div class="fb-chips">';
-    team.forEach(function(sec){var on=allOn||ref.has(sec.id);h+='<button class="fb-s'+(on?' on':'')+'" aria-pressed="'+on+'" onclick="v2ToggleSection(\''+sec.id+'\')">'+sec.label+'</button>'});
+    var full=team.every(function(x){return ref.has(x.id)});
+    h+='<div class="fb-team fb-t-'+t.id+'"><div class="fb-th"><b><i></i>'+t.label+'</b><button onclick="v3PickTeam(\''+t.id+'\')">'+(full?'Clear':'Select all')+'</button></div><div class="fb-chips">';
+    team.forEach(function(sec){var on=ref.has(sec.id);h+='<button class="fb-s'+(on?' on':'')+'" aria-pressed="'+on+'" onclick="v3PickSection(\''+sec.id+'\')">'+sec.label+'</button>'});
     h+='</div></div>'});
-  h+='<div class="fb-foot"><button onclick="v2ClearFilters()">Show all sections</button><span>'+shown+' of '+V2_SECTIONS.length+' shown</span></div></div>';
+  h+='<div class="fb-foot">'+(ref.size?'<button onclick="v2ClearFilters()">Show all sections</button><span>'+ref.size+' of '+V2_SECTIONS.length+' picked</span>':
+    '<span>Pick sections to focus on</span><span>Showing all '+V2_SECTIONS.length+'</span>')+'</div></div>';
   el.innerHTML=h;
 }
 function v3RefreshSectionCheckboxes(){if(_openPop==='sections')v3BuildSectionsPop()}
