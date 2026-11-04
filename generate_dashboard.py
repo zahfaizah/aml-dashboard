@@ -249,8 +249,11 @@ def read_screening(path):
             if label:
                 current = label
                 data['batch_alerts'].setdefault(current, {})
+            # Any scenario name counts (BATCH_..., and since Nov 2026 SYSTEM_DANA_DANA_REMITTANCE_TRANSFER);
+            # header and total rows don't.
             scenario = _cell_txt(df.iloc[i, RIGHT + 1])
-            if not scenario.upper().startswith('BATCH') or not current: continue
+            if not scenario or not current or scenario.lower() in ('type alert', 'scenario') or scenario.lower().startswith('total'):
+                continue
             if all(pd.isna(df.iloc[i, c]) for c in cols.values() if c is not None): continue
             data['batch_alerts'][current][scenario] = {
                 k: (safe_int(df.iloc[i, c]) if c is not None else 0) for k, c in cols.items()}

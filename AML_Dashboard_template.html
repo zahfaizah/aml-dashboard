@@ -1588,8 +1588,9 @@ function scenarioDropdown(mountId,opts,value,onPick,label){
 
 // ── Batch scenario filter ──
 // The batch panels count one scenario or all of them (batchSc); Closed = false hits + true hits.
-var BATCH_SC=[{k:'all',l:'All scenarios'}].concat(['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL',
-  'BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'].map(function(k){return{k:k,l:k}}));
+// The scenarios are whatever the data has, in the order the Excel lists them (a new one, like
+// SYSTEM_DANA_DANA_REMITTANCE_TRANSFER, shows up on its own).
+var BATCH_SC=[{k:'all',l:'All scenarios'}].concat((function(){var ks=[];STORE.months.forEach(function(m){Object.keys((STORE.data[m]||{}).batch_scenarios||{}).forEach(function(k){if(ks.indexOf(k)<0)ks.push(k)})});return ks})().map(function(k){return{k:k,l:k}}));
 var batchSc='all';
 function batchVal(fields){return function(m){var sc=(STORE.data[m]||{}).batch_scenarios||{},keys=batchSc==='all'?Object.keys(sc):[batchSc];
   return keys.reduce(function(a,k){return a+fields.reduce(function(b,f){return b+N((sc[k]||{})[f])},0)},0)}}
@@ -2231,7 +2232,7 @@ function cmpSec(d,l,sec){
     h+='</div>';
     // Scenario table
     h+='<div class="cd" style="margin-top:.5rem"><div class="cd-t">Detail</div><table class="tb"><thead><tr><th>Scenario</th><th>FH</th><th>TH</th></tr></thead><tbody>';
-    var sc=d.batch_scenarios||{};['BATCH_PEP_INDIVIDUAL','BATCH_SANC_INDIVIDUAL','BATCH_INTERNAL_INDIVIDUAL','BATCH_PEP_MERCHANT','BATCH_SANC_MERCHANT','BATCH_SANC_INTERNAL_MERCHANT'].forEach(function(s){var v=sc[s];if(v)h+='<tr><td style="font-size:.6rem">'+s.replace('BATCH_','')+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td></tr>'});
+    var sc=d.batch_scenarios||{};BATCH_SC.slice(1).map(function(o){return o.k}).forEach(function(s){var v=sc[s];if(v)h+='<tr><td style="font-size:.6rem">'+s.replace('BATCH_','')+'</td><td>'+fmt(v.false_hit)+'</td><td>'+fmt(v.true_hit)+'</td></tr>'});
     h+='</tbody></table></div>';
   } else if(sec==='remittance'){
     h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
