@@ -538,6 +538,46 @@ body.dark .v3-pop{box-shadow:0 14px 42px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.2)
 .v3-pop.open{display:block}
 .v3-pop.shown{opacity:1;transform:translateY(0)}
 .v3-pop-wide{width:340px}
+/* ═══ Filter bar, option B: pills, month grid, team chips ═══ */
+.v3-bar .v3-pop-trigger{border-radius:999px;border:1px solid var(--border);background:var(--card);padding:.45rem .85rem}
+.v3-bar .v3-pop-trigger:hover{border-color:var(--text5);background:var(--card)}
+.v3-bar .v3-pop-trigger .v3-pop-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.v3-bar .v3-pop-trigger .v3-pop-value{font-weight:600;max-width:260px}
+.v3-pop.fb-pop{width:auto;min-width:0;padding:.85rem .95rem;border-radius:14px}
+.fb-period{display:flex;gap:1.1rem}
+.fb-yr{font-size:.6rem;font-weight:700;color:var(--text4);letter-spacing:.6px;margin-bottom:.4rem}
+.fb-grid{display:grid;grid-template-columns:repeat(4,52px);gap:4px}
+.fb-m{border:0;background:none;font:inherit;font-size:.72rem;padding:.5rem 0;border-radius:8px;color:var(--text);cursor:pointer;transition:background .15s,color .15s}
+.fb-m:hover{background:var(--hover)}
+.fb-m.in{background:#E3F2FD;color:#0D47A1}
+.fb-m.end{background:#1976D2;color:#fff;font-weight:700}
+.fb-m:disabled{color:var(--text5);cursor:default;background:none}
+body.dark .fb-m.in{background:rgba(33,150,243,.18);color:#90CAF9}
+.fb-hint{font-size:.58rem;color:var(--text4);margin-top:.5rem}
+.fb-pre{display:flex;flex-direction:column;gap:.35rem;padding-left:1rem;border-left:1px solid var(--border)}
+.fb-chip{border:1px solid var(--border);background:var(--card);font:inherit;font-size:.68rem;padding:.35rem .8rem;border-radius:999px;color:var(--text3);cursor:pointer;white-space:nowrap;text-align:left;transition:background .15s,color .15s,border-color .15s}
+.fb-chip:hover{border-color:var(--text5);color:var(--text)}
+.fb-chip.on{background:#1976D2;border-color:#1976D2;color:#fff}
+.fb-secs{width:440px;max-width:calc(100vw - 48px)}
+.fb-team{margin-bottom:.75rem}
+.fb-th{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem}
+.fb-th b{font-size:.6rem;font-weight:700;color:var(--text4);letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:.4rem}
+.fb-th b i{width:7px;height:7px;border-radius:50%;background:var(--tc)}
+.fb-th button{border:0;background:none;font:inherit;font-size:.62rem;font-weight:600;color:var(--tc);cursor:pointer;padding:0}
+.fb-chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.fb-s{border:1px solid var(--border);background:var(--card);font:inherit;font-size:.68rem;padding:.33rem .75rem;border-radius:999px;color:var(--text3);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.fb-s:hover{border-color:var(--tc)}
+.fb-s.on{background:var(--tbg);border-color:var(--tbd);color:var(--tfg);font-weight:600}
+.fb-t-sanction{--tc:#1976D2;--tbg:#E3F2FD;--tbd:#90CAF9;--tfg:#0D47A1}
+.fb-t-nontms{--tc:#78909C;--tbg:#ECEFF1;--tbd:#B0BEC5;--tfg:#37474F}
+.fb-t-tms{--tc:#26A69A;--tbg:#E0F2F1;--tbd:#80CBC4;--tfg:#00695C}
+body.dark .fb-t-sanction{--tbg:rgba(33,150,243,.18);--tbd:rgba(33,150,243,.45);--tfg:#90CAF9}
+body.dark .fb-t-nontms{--tbg:rgba(144,164,174,.18);--tbd:rgba(144,164,174,.45);--tfg:#CFD8DC}
+body.dark .fb-t-tms{--tbg:rgba(38,166,154,.18);--tbd:rgba(38,166,154,.45);--tfg:#80CBC4}
+.fb-foot{display:flex;justify-content:space-between;align-items:center;padding-top:.6rem;border-top:1px solid var(--border);font-size:.62rem;color:var(--text4)}
+.fb-foot button{border:0;background:none;font:inherit;font-size:.65rem;font-weight:600;color:var(--acc);cursor:pointer;padding:0}
+@media (max-width:640px){.fb-period{flex-direction:column}.fb-pre{flex-direction:row;flex-wrap:wrap;border-left:0;padding-left:0;border-top:1px solid var(--border);padding-top:.6rem}}
+
 .v3-pop-h{font-size:.55rem;font-weight:700;color:var(--text4);letter-spacing:.7px;text-transform:uppercase;padding:.3rem .55rem .35rem;display:flex;align-items:center;justify-content:space-between}
 .v3-pop-h .v3-pop-clear{font-size:.6rem;color:var(--acc);cursor:pointer;font-weight:600;text-transform:none;letter-spacing:0;padding:.15rem .35rem;border-radius:5px;transition:background .15s}
 .v3-pop-h .v3-pop-clear:hover{background:var(--acc-bg)}
@@ -2539,139 +2579,78 @@ document.addEventListener('mousedown',function(e){
 });
 
 // ── Build popover contents (full rebuild — only on first open) ──
+// Period: the months of the year as a grid (months without data greyed); a click picks that month, a second click
+// picks everything from the first to it, a third starts again. Presets beside it pick common windows.
+var _fbAnchor=null;
+var FB_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function v3SetMonths(list){
+  var ref=v2State.activeMonths;ref.clear();v2State.monthsExplicitEmpty=false;
+  if(list.length&&list.length<STORE.months.length)list.forEach(function(m){ref.add(m)});
+  v3UpdateTriggerLabels();v2BuildPills();if(_openPop==='period')v3BuildPeriodPop();_debouncedRender();
+}
+function v3PickMonth(m){
+  var ms=STORE.months;
+  if(_fbAnchor==null||ms.indexOf(_fbAnchor)<0){_fbAnchor=m;v3SetMonths([m]);return}
+  var a=ms.indexOf(_fbAnchor),b=ms.indexOf(m),lo=Math.min(a,b),hi=Math.max(a,b);_fbAnchor=null;v3SetMonths(ms.slice(lo,hi+1));
+}
+function v3PresetMonths(k){
+  var ms=STORE.months,last=ms.length-1;_fbAnchor=null;
+  if(k==='all')return v3SetMonths([]);
+  if(k==='this')return v3SetMonths([ms[last]]);
+  if(k==='ytd'){var y=ms[last].split(' ')[1];return v3SetMonths(ms.filter(function(m){return m.split(' ')[1]===y}))}
+  v3SetMonths(ms.slice(Math.max(0,last-(+k)+1)));
+}
 function v3BuildPeriodPop(){
-  var el=document.getElementById('v3-pop-period');
-  if(!el)return;
-  var ref=v2State.activeMonths;
-  var allOn=ref.size===0&&!v2State.monthsExplicitEmpty;
-  var pickCount=ref.size===0?(v2State.monthsExplicitEmpty?0:STORE.months.length):ref.size;
-  var h='';
-  h+='<div class="v3-pop-h"><span>Period <span style="color:var(--text5);font-weight:500" id="v3-period-count">('+pickCount+'/'+STORE.months.length+')</span></span><span class="v3-pop-clear" onmousedown="event.stopPropagation()" onclick="v3SelectAllMonths()">All months</span></div>';
-  h+='<div class="v3-row is-all" onmousedown="event.stopPropagation()" onclick="v3ToggleAllMonths()"><span class="v3-cb '+(allOn?'on':'')+'" data-m="__all"></span>All months</div>';
-  h+='<div class="v3-pop-divider"></div>';
-  STORE.months.forEach(function(m){
-    var on=allOn||ref.has(m);
-    h+='<div class="v3-row" onmousedown="event.stopPropagation()" onclick="v3ToggleMonth(\''+m+'\')"><span class="v3-cb '+(on?'on':'')+'" data-m="'+m+'"></span>'+m+'</div>';
-  });
+  var el=document.getElementById('v3-pop-period');if(!el)return;
+  el.classList.add('fb-pop');
+  var ms=STORE.months,picks=v3PickedMonths(),all=v3IsAllMonths(),pi=picks.map(function(m){return ms.indexOf(m)});
+  var lo=Math.min.apply(null,pi),hi=Math.max.apply(null,pi),contig=hi-lo+1===picks.length;
+  var years=[];ms.forEach(function(m){var y=m.split(' ')[1];if(years.indexOf(y)<0)years.push(y)});
+  var h='<div class="fb-period" onmousedown="event.stopPropagation()"><div>';
+  years.forEach(function(y){
+    h+='<div class="fb-yr">'+y+'</div><div class="fb-grid" style="margin-bottom:.6rem">';
+    FB_MON.forEach(function(mn,i){var full=['January','February','March','April','May','June','July','August','September','October','November','December'][i]+' '+y,k=ms.indexOf(full);
+      if(k<0){h+='<button class="fb-m" disabled>'+mn+'</button>';return}
+      var on=!all&&picks.indexOf(full)>=0,end=on&&contig&&(k===lo||k===hi),cls=!on?'':(end||!contig?'end':'in');
+      h+='<button class="fb-m '+cls+'" onclick="v3PickMonth(\''+full+'\')" aria-pressed="'+on+'">'+mn+'</button>'});
+    h+='</div>'});
+  h+='<div class="fb-hint">'+(_fbAnchor?'Now pick the last month':'Click a month, or a start and an end')+'</div></div>';
+  var last=ms.length-1,isLastN=function(n){return!all&&contig&&hi===last&&picks.length===n};
+  var pre=[['this','This month',isLastN(1)],['3','Last 3 months',isLastN(3)],['6','Last 6 months',isLastN(6)],['all','All months',all]];
+  h+='<div class="fb-pre">'+pre.map(function(p){return'<button class="fb-chip'+(p[2]?' on':'')+'" onclick="v3PresetMonths(\''+p[0]+'\')">'+p[1]+'</button>'}).join('')+'</div></div>';
   el.innerHTML=h;
 }
-// In-place checkbox refresh (no innerHTML nuke)
-function v3RefreshPeriodCheckboxes(){
-  var el=document.getElementById('v3-pop-period');
-  if(!el)return;
-  var ref=v2State.activeMonths;
-  var allOn=ref.size===0&&!v2State.monthsExplicitEmpty;
-  var pickCount=ref.size===0?(v2State.monthsExplicitEmpty?0:STORE.months.length):ref.size;
-  // Update counter
-  var cnt=document.getElementById('v3-period-count');
-  if(cnt)cnt.textContent='('+pickCount+'/'+STORE.months.length+')';
-  // Update checkboxes
-  el.querySelectorAll('.v3-cb[data-m]').forEach(function(cb){
-    var m=cb.getAttribute('data-m');
-    var on;
-    if(m==='__all') on=allOn;
-    else on=allOn||ref.has(m);
-    cb.classList.toggle('on',on);
-  });
-}
+function v3RefreshPeriodCheckboxes(){if(_openPop==='period')v3BuildPeriodPop()}
 
-var _secSearchTerm='';
+// Sections: each team is a row of chips in the team's own colour (Sanction blue, NON TMS blue-grey, TMS teal, as on the
+// section badges); a chip shows or hides its section, and each team has Select all / Clear.
 function v3BuildSectionsPop(){
-  var el=document.getElementById('v3-pop-sections');
-  if(!el)return;
-  var ref=v2State.activeSections;
-  var allOn=ref.size===0&&!v2State.sectionsExplicitEmpty;
-  var totalActive=v2State.sectionsExplicitEmpty?0:(ref.size===0?V2_SECTIONS.length:ref.size);
-  var q=_secSearchTerm.toLowerCase();
-  var h='';
-  h+='<div class="v3-pop-h"><span>Filters <span style="color:var(--text5);font-weight:500" id="v3-sec-count">('+totalActive+'/'+V2_SECTIONS.length+')</span></span></div>';
-  // Search input
-  h+='<div class="v3-pop-search" onmousedown="event.stopPropagation()"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search sections\u2026" value="'+_secSearchTerm.replace(/"/g,'&quot;')+'" oninput="_secSearchTerm=this.value;v3FilterSectionRows()"></div>';
-  h+='<div class="v3-row is-all" onmousedown="event.stopPropagation()" onclick="v2ToggleAllSections()"><span class="v3-cb '+(allOn?'on':'')+'" data-s="__all"></span>All sections</div>';
-  h+='<div class="v3-pop-divider"></div>';
-  var anyVisible=false;
+  var el=document.getElementById('v3-pop-sections');if(!el)return;
+  el.classList.add('fb-pop');
+  var ref=v2State.activeSections,allOn=ref.size===0&&!v2State.sectionsExplicitEmpty;
+  var shown=v2State.sectionsExplicitEmpty?0:(ref.size===0?V2_SECTIONS.length:ref.size);
+  var h='<div class="fb-secs" onmousedown="event.stopPropagation()">';
   V2_TEAMS.forEach(function(t){
-    var team=v2TeamSections(t.id);
+    var team=v2TeamSections(t.id);if(!team.length)return;
     var st=v2TeamCheckState(t.id);
-    var teamCls=t.id==='tms'?'team-tms':(t.id==='nontms'?'team-nontms':'');
-    var teamVisible=team.some(function(s){return !q||s.label.toLowerCase().indexOf(q)>=0||t.label.toLowerCase().indexOf(q)>=0});
-    var hidCls=teamVisible?'':'hidden';
-    if(teamVisible)anyVisible=true;
-    h+='<div class="v3-team-h '+teamCls+' '+hidCls+'" data-team="'+t.id+'">'+t.label+'</div>';
-    h+='<div class="v3-row is-all '+hidCls+'" data-team="'+t.id+'" onmousedown="event.stopPropagation()" onclick="v2ToggleTeam(\''+t.id+'\')"><span class="v3-cb '+(st==='on'?'on':(st==='indeterminate'?'indeterminate':''))+'" data-t="'+t.id+'"></span>All '+t.label+'</div>';
-    team.forEach(function(s){
-      var on=allOn||ref.has(s.id);
-      var match=!q||s.label.toLowerCase().indexOf(q)>=0||t.label.toLowerCase().indexOf(q)>=0;
-      h+='<div class="v3-row section-row'+(match?'':' hidden')+'" data-section="'+s.id+'" onmousedown="event.stopPropagation()" onclick="v2ToggleSection(\''+s.id+'\')"><span class="v3-cb '+(on?'on':'')+'" data-s="'+s.id+'"></span>'+s.label+'</div>';
-    });
-  });
-  h+='<div class="v3-pop-no-match" style="'+(anyVisible?'display:none':'')+'">No sections match your search.</div>';
+    h+='<div class="fb-team fb-t-'+t.id+'"><div class="fb-th"><b><i></i>'+t.label+'</b><button onclick="v2ToggleTeam(\''+t.id+'\')">'+(st==='on'?'Clear':'Select all')+'</button></div><div class="fb-chips">';
+    team.forEach(function(sec){var on=allOn||ref.has(sec.id);h+='<button class="fb-s'+(on?' on':'')+'" aria-pressed="'+on+'" onclick="v2ToggleSection(\''+sec.id+'\')">'+sec.label+'</button>'});
+    h+='</div></div>'});
+  h+='<div class="fb-foot"><button onclick="v2ClearFilters()">Show all sections</button><span>'+shown+' of '+V2_SECTIONS.length+' shown</span></div></div>';
   el.innerHTML=h;
 }
-// In-place checkbox refresh for sections
-function v3RefreshSectionCheckboxes(){
-  var el=document.getElementById('v3-pop-sections');
-  if(!el)return;
-  var ref=v2State.activeSections;
-  var allOn=ref.size===0&&!v2State.sectionsExplicitEmpty;
-  var totalActive=v2State.sectionsExplicitEmpty?0:(ref.size===0?V2_SECTIONS.length:ref.size);
-  var cnt=document.getElementById('v3-sec-count');
-  if(cnt)cnt.textContent='('+totalActive+'/'+V2_SECTIONS.length+')';
-  // Team "All" checkboxes
-  el.querySelectorAll('.v3-cb[data-t]').forEach(function(cb){
-    var tid=cb.getAttribute('data-t');
-    var st=v2TeamCheckState(tid);
-    cb.classList.remove('on','indeterminate');
-    if(st==='on')cb.classList.add('on');
-    else if(st==='indeterminate')cb.classList.add('indeterminate');
-  });
-  // Individual section checkboxes + the All sections master checkbox
-  el.querySelectorAll('.v3-cb[data-s]').forEach(function(cb){
-    var sid=cb.getAttribute('data-s');
-    if(sid==='__all'){
-      cb.classList.toggle('on',allOn);
-    } else {
-      var on=allOn||ref.has(sid);
-      cb.classList.toggle('on',on);
-    }
-  });
-}
-function v3FilterSectionRows(){
-  var el=document.getElementById('v3-pop-sections');
-  if(!el)return;
-  var q=_secSearchTerm.toLowerCase();
-  var anyVisible=false;
-  V2_TEAMS.forEach(function(t){
-    var teamMatch=t.label.toLowerCase().indexOf(q)>=0;
-    var teamHdr=el.querySelector('.v3-team-h[data-team="'+t.id+'"]');
-    var teamAll=el.querySelector('.v3-row.is-all[data-team="'+t.id+'"]');
-    var team=v2TeamSections(t.id);
-    var hasVisibleChild=false;
-    team.forEach(function(s){
-      var row=el.querySelector('.v3-row[data-section="'+s.id+'"]');
-      if(!row)return;
-      var match=!q||s.label.toLowerCase().indexOf(q)>=0||teamMatch;
-      row.classList.toggle('hidden',!match);
-      if(match)hasVisibleChild=true;
-    });
-    var show=hasVisibleChild||teamMatch;
-    if(show)anyVisible=true;
-    if(teamHdr)teamHdr.classList.toggle('hidden',!show);
-    if(teamAll)teamAll.classList.toggle('hidden',!show);
-  });
-  var noMatch=el.querySelector('.v3-pop-no-match');
-  if(noMatch)noMatch.style.display=anyVisible?'none':'block';
-}
+function v3RefreshSectionCheckboxes(){if(_openPop==='sections')v3BuildSectionsPop()}
 
 // ── Trigger labels ──
 function v3UpdateTriggerLabels(){
   var pLbl='';
   if(v2State.monthsExplicitEmpty){pLbl='None'}
   else {
-    var picks=v3PickedMonths();
+    var picks=v3PickedMonths(),ix=picks.map(function(m){return STORE.months.indexOf(m)}),contig=ix.length&&ix[ix.length-1]-ix[0]+1===ix.length;
+    var sp=function(m){return m.split(' ')};
     if(v3IsAllMonths()){pLbl='All months'}
-    else if(picks.length===1){pLbl=shortMonth(picks[0])}
-    else if(picks.length===2){pLbl=shortMonth(picks[0])+' + '+shortMonth(picks[1])}
+    else if(picks.length===1){pLbl=picks[0]}
+    else if(contig){var a=sp(picks[0]),b=sp(picks[picks.length-1]);pLbl=a[0].slice(0,3)+(a[1]===b[1]?'':' '+a[1])+' – '+b[0].slice(0,3)+' '+b[1]}
     else{pLbl=picks.length+' months'}
   }
   document.getElementById('v3-period-value').textContent=pLbl;
@@ -2679,7 +2658,8 @@ function v3UpdateTriggerLabels(){
   var sLbl='';
   if(v2State.sectionsExplicitEmpty){sLbl='None'}
   else if(v2State.activeSections.size===0){sLbl='All sections'}
-  else if(sects.length===1)sLbl=sects[0].label;
+  else if(sects.length===1)sLbl=V2_TEAMS.filter(function(t){return t.id===sects[0].team})[0].label+' · '+sects[0].label;
+  else if(sects.every(function(x){return x.team===sects[0].team})){sLbl=V2_TEAMS.filter(function(t){return t.id===sects[0].team})[0].label+' · '+sects.length+' sections'}
   else{
     var byTeam={};
     sects.forEach(function(s){byTeam[s.team]=(byTeam[s.team]||0)+1});
@@ -2702,10 +2682,9 @@ function v2BuildPills(){
   var container=document.getElementById('v2-pills');
   var h='';
   if(!v3IsAllMonths()&&!v2State.monthsExplicitEmpty){
-    var picks=v3PickedMonths();
-    picks.forEach(function(m){
-      h+='<span class="v2-pill"><b>Period</b> &middot; '+shortMonth(m)+' <span class="v2-pill-x" onclick="v3RemoveMonthFromActive(\''+m+'\')" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="6" y1="6" x2="18" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></svg></span></span>';
-    });
+    // one pill for the whole period, worded like the Period button ("Aug – Oct 2026"); its × goes back to all months
+    var pl=(document.getElementById('v3-period-value')||{}).textContent||v3PickedMonths().length+' months';
+    h+='<span class="v2-pill"><b>Period</b> &middot; '+pl+' <span class="v2-pill-x" onclick="v3PresetMonths(\'all\')" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></span></span>';
   }
   if(v2State.activeSections.size>0&&v2State.activeSections.size<V2_SECTIONS.length){
     V2_TEAMS.forEach(function(t){
