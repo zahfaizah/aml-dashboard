@@ -288,6 +288,9 @@ body.dark .cg-th{color:#4DD0E1}
 .sf-scrub:focus-visible{box-shadow:0 0 0 2px color-mix(in srgb,var(--acc) 40%,transparent)}
 .sf-note{display:flex;align-items:center;gap:.6rem;margin-top:.4rem;font-size:.66rem;color:var(--text3);line-height:1.45}
 .sf-note b{color:var(--acc);font-weight:700}
+.rr-kr{grid-template-columns:repeat(3,1fr)}
+.rr-none{font-size:.66rem;color:var(--text4);margin:-.35rem 0 .55rem}
+.rr-empty{display:flex;align-items:center;justify-content:center;min-height:120px;font-size:.72rem;color:var(--text4)}
 .sf-ico{flex-shrink:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--acc-bg);color:var(--acc)}
 .sf-ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 @media (prefers-reduced-motion:reduce){.sf-pill{transition:none}}
@@ -916,7 +919,10 @@ var INFO={
   manual_close:'Alerts closed by an analyst.',
   system_close:'Alerts closed by the system, false hit and true hit.',
   auto_close:'Alerts closed by automation (PEP Individual only).',
-  created:'All alerts created in the period.'
+  created:'All alerts created in the period.',
+  rr_fh:'All remittance transfer alerts closed as false hit.',
+  rr_th:'All remittance transfer alerts closed as true hit.',
+  rr_gen:'False hit + true hit.'
 };
 var _iiSeq=0,_iiOpen=null,_iiPtr='';
 function infoTip(name,text){var id='ii-'+(++_iiSeq);return'<button type="button" class="ii" aria-label="About '+name+'" aria-describedby="'+id+'">i<span class="ii-pop" role="tooltip" id="'+id+'">'+text+'</span></button>'}
@@ -1635,8 +1641,7 @@ function scenarioDropdown(mountId,opts,value,onPick,label){
 
 // ── Batch scenario filter ──
 // The batch panels count one scenario or all of them (batchSc); Closed = false hits + true hits.
-// The scenarios are whatever the data has, in the order the Excel lists them (a new one, like
-// SYSTEM_DANA_DANA_REMITTANCE_TRANSFER, shows up on its own).
+// The scenarios are whatever the data has, in the order the Excel lists them (a new one shows up on its own).
 var BATCH_SC=[{k:'all',l:'All scenarios'}].concat((function(){var ks=[];STORE.months.forEach(function(m){Object.keys((STORE.data[m]||{}).batch_scenarios||{}).forEach(function(k){if(ks.indexOf(k)<0)ks.push(k)})});return ks})().map(function(k){return{k:k,l:k}}));
 var batchSc='all';
 function batchVal(fields){return function(m){var sc=(STORE.data[m]||{}).batch_scenarios||{},keys=batchSc==='all'?Object.keys(sc):[batchSc];
@@ -1709,6 +1714,21 @@ function renderScreening(){
   h+='<div class="dt" style="margin-top:1rem" onclick="toggleDetail(\'dp-hits\')"><span class="dt-i" id="icon-dp-hits">\u25B6</span><span>Hit Log</span></div>';
   h+='<div class="dp" id="dp-hits"><div class="cd ht-card" id="hit-table"></div></div>';
 
+  // Realtime remittance transfer (SYSTEM_DANA_DANA_REMITTANCE_TRANSFER): data starts with its first month in the Excel
+  var rrMs=rrMonths(),rrFirst=rrMs[0],rrSince=rrFirst?rrFirst.split(' ')[0].slice(0,3)+' '+rrFirst.split(' ')[1]:'';
+  var rrHas=d.rt_remit_generated!=null,rrPrev=pd&&pd.rt_remit_generated!=null;
+  var rrD=[rrPrev?delta(N(d.rt_remit_fh),N(pd.rt_remit_fh),p):null,rrPrev?delta(N(d.rt_remit_th),N(pd.rt_remit_th),p):null,rrPrev?delta(N(d.rt_remit_generated),N(pd.rt_remit_generated),p):null];
+  var rrV=function(k){return rrHas?fmt(N(d[k])):'–'};
+  h+='<div class="sec-h"><span class="sec-lbl">Remittance Transfer</span><span class="sec-tag">Realtime</span><span class="sec-line"></span></div>';
+  h+='<div class="kr rr-kr">';
+  h+=kp('False Hit',rrV('rt_remit_fh'),rrD[0],{info:'rr_fh'});
+  h+=kp('True Hit',rrV('rt_remit_th'),rrD[1],{info:'rr_th'});
+  h+=kp('Alert Generated',rrV('rt_remit_generated'),rrD[2],{info:'rr_gen'});
+  h+='</div>';
+  var rrShown=ms.filter(function(m){return rrMs.indexOf(m)>=0||(rrFirst&&monthIdx(m)>monthIdx(rrFirst))});
+  if(rrFirst&&rrShown.length<ms.length&&rrShown.length)h+='<div class="rr-none">No data before '+rrSince+'</div>';
+  h+='<div id="rr-flow"></div>';
+
   // ── BATCH SCREENING ──
   h+='<div class="sec-h"><span class="sec-lbl">Batch Screening</span><span class="sec-line"></span></div>';
   var btD=[pd?delta(N(d.batch_generated),N(pd.batch_generated),p):null,pd?delta(N(d.batch_closed),N(pd.batch_closed),p):null,pd?delta(N(d.batch_total_th),N(pd.batch_total_th),p):null,pd?delta(N(d.batch_total_fh),N(pd.batch_total_fh),p):null];
@@ -1756,6 +1776,13 @@ function renderScreening(){
     onOpen:function(m){openHitTable('cat',m)},
     cats:['Sanction','PEP','Internal List','Multitype'].map(function(c){return{label:c,val:[catVal('fh',c),catVal('th',c)]}})});
 
+  // Remittance transfer: false hits and true hits stacked, so a bar's height is the alerts generated
+  var rrEl=document.getElementById('rr-flow');
+  if(!rrShown.length)rrEl.innerHTML='<div class="cd rr-empty">'+(rrFirst?'No data before '+rrSince:'No remittance transfer data yet')+'</div>';
+  else stackFlow('rr-flow',{months:rrShown,title:'Remittance Transfer Alerts',
+    modes:[{label:'Alerts',noun:['alert','alerts'],colors:[CL.blue,CL.teal]}],
+    series:[{label:'False hit',val:[rtVal('rt_remit_fh')]},{label:'True hit',val:[rtVal('rt_remit_th')]}]});
+
   // Batch: linked panels (Created, Closed, True Hit) for the chosen scenario
   renderBatchTrends();
   renderBatchThType();
@@ -1763,6 +1790,9 @@ function renderScreening(){
   if(batchMonth!=='all')batchMonth=curMonth;renderBatchTable();
 }
 
+// months that have realtime remittance transfer data, in order
+function rrMonths(){return STORE.months.filter(function(m){return(STORE.data[m]||{}).rt_remit_generated!=null})}
+function monthIdx(m){return STORE.months.indexOf(m)}
 function tglCat(b){if(!window._thChart)return;var cs=['PEP','Sanction','Internal List','Multitype'];b.classList.toggle('on');var i=cs.indexOf(b.dataset.c);window._thChart.data.datasets[i].hidden=!b.classList.contains('on');window._thChart.update()}
 
 // ── Shared bits for the smaller charts ──

@@ -171,7 +171,7 @@ def read_screening(path):
     sheet or grow as months are added without the reader losing track.
     """
     df = pd.read_excel(path, sheet_name='Screening', header=None)
-    data = {'realtime_hits': {}, 'realtime_generated': {}, 'realtime_update': {},
+    data = {'realtime_hits': {}, 'realtime_generated': {}, 'realtime_update': {}, 'realtime_remit': {},
             'batch_alerts': {}, 'batch_truehit': {}, 'batch_update': {}}
 
     LEFT, RIGHT = 0, 19
@@ -179,6 +179,9 @@ def read_screening(path):
     h_hits = find_block_header(df, LEFT,  lambda s: s.startswith('false hit'))
     h_gen  = find_block_header(df, LEFT,  lambda s: 'false hit individual' in s)
     h_upd  = find_block_header(df, LEFT,  lambda s: 'total alert generate' in s)
+    # Realtime remittance transfer (SYSTEM_DANA_DANA_REMITTANCE_TRANSFER); optional, older files don't have it.
+    # Exact match: the generated block's header is 'Total False Hit Individual'.
+    h_rem  = find_block_header(df, LEFT,  lambda s: s == 'total false hit')
     h_bal  = find_block_header(df, RIGHT, lambda s: s.startswith('type alert'))
     h_bth  = find_block_header(df, RIGHT, lambda s: s == 'pep')
     h_bupd = find_block_header(df, RIGHT, lambda s: 'total alert generate' in s or 'total alert created' in s)
@@ -228,6 +231,16 @@ def read_screening(path):
             if gen == 0 and closed == 0: continue
             data['realtime_update'][label] = {'generated': gen, 'closed': closed}
 
+    # ── Realtime remittance transfer: False Hit | True Hit | Alert Generated ──
+    if h_rem is not None:
+        yr = block_year(df, LEFT, h_rem)
+        for i in range(h_rem + 1, block_end(df, LEFT, h_rem)):
+            label = month_label(df.iloc[i, LEFT], yr)
+            if not label: continue
+            fh, th, gen = (safe_int(df.iloc[i, c]) for c in (1, 2, 3))
+            if fh + th + gen == 0: continue
+            data['realtime_remit'][label] = {'fh': fh, 'th': th, 'generated': gen}
+
     # ── Batch screening alerts (month cells are merged; carry forward) ──
     # Columns are found by their header text, so inserting a column in the
     # sheet (e.g. 'System Closed') doesn't shift the others.
@@ -249,8 +262,7 @@ def read_screening(path):
             if label:
                 current = label
                 data['batch_alerts'].setdefault(current, {})
-            # Any scenario name counts (BATCH_..., and since Nov 2026 SYSTEM_DANA_DANA_REMITTANCE_TRANSFER);
-            # header and total rows don't.
+            # Any scenario name counts; header and total rows don't.
             scenario = _cell_txt(df.iloc[i, RIGHT + 1])
             if not scenario or not current or scenario.lower() in ('type alert', 'scenario') or scenario.lower().startswith('total'):
                 continue
@@ -792,7 +804,7 @@ def compute_derived(sanction_data, nontms_data, tms_data):
 
         all_months = set()
         for src in [screening['realtime_hits'], screening['realtime_generated'],
-                    screening['realtime_update'], screening['batch_alerts'],
+                    screening['realtime_update'], screening.get('realtime_remit', {}), screening['batch_alerts'],
                     screening['batch_truehit'], screening['batch_update'],
                     remittance['monthly'], submerchant, newsletter['monthly'], reported]:
             all_months.update(src.keys())
@@ -828,6 +840,10 @@ def compute_derived(sanction_data, nontms_data, tms_data):
                 m['closure_rate'] = round(upd['closed'] / upd['generated'] * 100, 1) if upd['generated'] > 0 else 0
 
             m['true_hit_rate'] = round(m.get('true_hit_total', 0) / m['rt_generated'] * 100, 2) if m.get('rt_generated') else 0
+
+            rem = screening.get('realtime_remit', {}).get(label)
+            if rem:
+                m['rt_remit_fh'] = rem['fh']; m['rt_remit_th'] = rem['th']; m['rt_remit_generated'] = rem['generated']
 
             ba = screening['batch_alerts'].get(label, {})
             if ba:
