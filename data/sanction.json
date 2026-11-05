@@ -1,9 +1,9 @@
 {
  "_meta": {
   "team": "Sanction",
-  "updated_at": "2026-11-04 11:47",
+  "updated_at": "2026-11-05 10:52",
   "updated_by": "Faizah Zahrani",
-  "source_file": "SS_Dashboard_Data_2026.xlsx",
+  "source_file": "ss_copy.xlsx",
   "months": [
    "January 2026",
    "February 2026",
@@ -124,14 +124,6 @@
       "system_closed": 1,
       "automation_closed": 0,
       "alert_generated": 9
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 820851,
@@ -368,14 +360,6 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 8
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 246705,
@@ -619,14 +603,6 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 0
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 131495,
@@ -839,14 +815,6 @@
       "alert_generated": 0
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
@@ -1068,14 +1036,6 @@
       "alert_generated": 0
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
@@ -1322,14 +1282,6 @@
       "alert_generated": 0
      },
      "BATCH_SANC_INTERNAL_MERCHANT": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
       "false_hit": 0,
       "true_hit": 0,
       "manually_closed": 0,
@@ -1589,14 +1541,6 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 34
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 183369,
@@ -1838,14 +1782,6 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 21
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 201439,
@@ -2117,14 +2053,6 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 9
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 0,
-      "true_hit": 0,
-      "manually_closed": 0,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 0
      }
     },
     "batch_total_fh": 120025,
@@ -2347,6 +2275,9 @@
     "rt_closed": 19030,
     "closure_rate": 100.0,
     "true_hit_rate": 0.13,
+    "rt_remit_fh": 249,
+    "rt_remit_th": 0,
+    "rt_remit_generated": 249,
     "batch_scenarios": {
      "BATCH_PEP_INDIVIDUAL": {
       "false_hit": 89014,
@@ -2395,28 +2326,20 @@
       "system_closed": 0,
       "automation_closed": 0,
       "alert_generated": 16
-     },
-     "SYSTEM_DANA_DANA_REMITTANCE_TRANSFER": {
-      "false_hit": 249,
-      "true_hit": 0,
-      "manually_closed": 249,
-      "system_closed": 0,
-      "automation_closed": 0,
-      "alert_generated": 249
      }
     },
-    "batch_total_fh": 90682,
+    "batch_total_fh": 90433,
     "batch_total_th": 293,
-    "batch_total_mc": 1766,
+    "batch_total_mc": 1517,
     "batch_total_sc": 23784,
     "batch_total_ac": 65425,
-    "batch_total_ag": 90974,
+    "batch_total_ag": 90725,
     "batch_th_pep": 262,
     "batch_th_crime": 0,
     "batch_th_pepcrime": 10,
     "batch_th_total": 272,
-    "batch_generated": 90974,
-    "batch_closed": 90975,
+    "batch_generated": 90725,
+    "batch_closed": 90726,
     "rem_data_received": 52252,
     "rem_false_hit": 209,
     "rem_true_hit": 0,
