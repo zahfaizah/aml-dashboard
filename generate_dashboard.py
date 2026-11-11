@@ -925,7 +925,7 @@ def compute_derived(sanction_data, nontms_data, tms_data):
 # RFI MERCHANT — dashboard UI (TMS section)
 # ═══════════════════════════════════════════════════════════
 # The TMS "RFI Merchant" section mirrors "RFI KYB" (KPI cards, status doughnut,
-# Month-by-Month table, At a Glance + Highlights) and reuses the same shared
+# Month-by-Month table, notes panel + Notes Log) and reuses the same shared
 # helpers. It is added to the template in memory at build time, so
 # AML_Dashboard_template.html stays untouched and every regenerated
 # AML_Dashboard.html keeps the tab.
@@ -967,9 +967,9 @@ function renderTmsRfiMerchant(el,data){
   var rmTotal=N(d.success)+N(d.failed)+N(d.on_process);
   var rmSuccessRate=rmTotal>0?Math.round(N(d.success)/rmTotal*1000)/10:0;
   var rmTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  var rmGl=[{l:'Total Sent',v:fmt(rmTotal),sub:rmTrend?rmTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rmTrend?rmTrend.cls:''},{l:'Success Rate',v:rmSuccessRate+'%',sub:fmt(N(d.success))+' Success'},{l:'In Progress',v:fmt(N(d.on_process)),sub:'Under monitoring'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rmGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('rfi_merchant',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('rfi_merchant',data,months);
   el.innerHTML=h;
   // Doughnut
   var pieCanvas=document.getElementById('tms-rfim-d');

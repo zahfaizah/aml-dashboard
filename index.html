@@ -342,6 +342,21 @@ body.dark .theme-fab-icon svg{stroke:#FFC94D}body.dark .theme-fab-icon svg circl
 @media print{body{background:#F5F6FA!important;margin:0}.mn{max-width:100%!important;padding:8mm 10mm!important}.cd,.kp{box-shadow:none!important;border:1px solid #E5E7EB!important;break-inside:avoid}.dp{display:block!important}@page{size:A4 landscape;margin:8mm 10mm}canvas{max-width:100%!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 .tms-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,0.85fr);gap:1rem;align-items:stretch}
 .tms-grid.split{grid-template-columns:1fr 1fr}
+.tn{display:flex;flex-direction:column;min-width:0}
+.tn-h{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}.tn-h .cd-t{margin:0}
+.tn-step{margin-left:auto;display:flex;align-items:center;gap:.35rem}
+.tn-b{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer;display:grid;place-items:center;padding:0;transition:border-color .2s,color .2s}
+.tn-b:hover{border-color:var(--acc);color:var(--acc)}.tn-b svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.tn-m{font-size:.7rem;font-weight:700;color:var(--acc);min-width:92px;text-align:center}
+.tn-body{flex:1;font-size:.76rem;line-height:1.65;color:var(--text2)}
+.tn-body.swap{animation:tnIn .35s ease}@keyframes tnIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.tn-list{list-style:none;margin:0;padding:0}.tn-list li{display:flex;gap:.6rem;padding:.12rem 0 .5rem}.tn-list li:last-child{padding-bottom:0}
+.tn-list li>i{font-style:normal;font-weight:700;color:var(--acc);min-width:.7rem}
+.tn .hl,.tn-log .hl{color:var(--acc);font-weight:700}.tn .hl-num,.tn-log .hl-num{color:var(--acc-dk);font-weight:700}
+body.dark .tn .hl-num,body.dark .tn-log .hl-num{color:var(--acc)}
+.tn-empty{color:var(--text5);font-style:italic}.tn-p{margin:0}
+.tn-foot{margin-top:.8rem;padding-top:.55rem;border-top:1px solid var(--border);font-size:.6rem;color:var(--text4)}
+.tn-log .ht td{vertical-align:top;line-height:1.6}.tn-log .ht td:first-child{white-space:nowrap}.tn-log .tn-list li{padding-bottom:.3rem}
 .tms-narr{background:var(--card);border-radius:10px;padding:1.05rem 1.15rem;box-shadow:var(--card-sh);font-size:.78rem;line-height:1.65;color:var(--text2);transition:background .3s}
 .tms-narr-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:.45rem 0;margin-bottom:0}
 .tms-narr-toggle .narr-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--acc);margin-bottom:0}
@@ -972,6 +987,8 @@ function isSingleMonth(){return getMonths().length===1}
 // Bars: a solid 2px cap over a body that fades out downward; they grow in one after another, then the active
 // month's bar fills up with its colour from the floor (the one before drains back to the faded look).
 // cfg.metrics[i]: {title, label, color, val(month)->number, fmt(number)->string, note(month)->string}
+// cfg.onPick(month): told the picked month (pinned, else the dashboard month) whenever it changes; mount._tpPick(month)
+// picks one from outside.
 // places a chart tooltip; the first time it shows it appears in place (no slide in from the corner)
 function tipPlace(tip,l,t){var first=!tip.classList.contains('on');if(first)tip.style.transition='opacity .18s,transform .25s cubic-bezier(.34,1.56,.64,1)';tip.style.left=l+'px';tip.style.top=t+'px';if(first){void tip.offsetWidth;tip.style.transition=''}tip.classList.add('on')}
 var _tpSeq=0;
@@ -979,7 +996,7 @@ function trendPanels(mountId,cfg){
   var el=document.getElementById(mountId);if(!el)return;
   var ms=cfg.months,n=ms.length;if(!n){el.innerHTML='';return}
   var sel=ms.indexOf(curMonth);if(sel<0)sel=n-1;
-  var pinned=null,hover=null,tipPanel=-1,firstFill=true,uid='tp'+(++_tpSeq),still=calmMotion();
+  var pinned=null,hover=null,tipPanel=-1,firstFill=true,uid='tp'+(++_tpSeq),still=calmMotion(),picked=null;
   var NS='http://www.w3.org/2000/svg',BAR_H=96,CAP=2;
   var h='';
   cfg.metrics.forEach(function(mt,p){
@@ -1059,6 +1076,7 @@ function trendPanels(mountId,cfg){
         tipPlace(tip,Math.round(left),Math.round(Math.min(Math.max(top-th/2,0),BAR_H-th)));
       } else tip.classList.remove('on');
     });
+    var pk=pinned!=null?pinned:sel;if(cfg.onPick&&pk!==picked){picked=pk;cfg.onPick(ms[pk])}
   }
   function at(pn,e){var g=pn._g,r=pn.querySelector('.tp-plot').getBoundingClientRect(),x=e.clientX-r.left-g.off;return Math.min(n-1,Math.max(0,Math.floor((x+g.gap/2)/(g.bw+g.gap))))}
   panels.forEach(function(pn,p){
@@ -1078,6 +1096,7 @@ function trendPanels(mountId,cfg){
     sc.addEventListener('blur',function(){if(tipPanel===p){tipPanel=-1;paint()}});
     var ob=pn.querySelector('.tp-open');if(ob)ob.addEventListener('click',function(){cfg.onOpen(p)});
   });
+  el._tpPick=function(m){var i=ms.indexOf(m);if(i<0)return;pinned=i===sel?null:i;paint()};
   layout();firstFill=false;
   setTimeout(function(){wrap.classList.remove('tp-anim')},2600);   // later redraws (resize) don't regrow
   var onResize=function(){if(!wrap.isConnected){window.removeEventListener('resize',onResize);return}layout()};
@@ -3430,6 +3449,67 @@ function tmsBulletsMulti(data,months){
   return h;
 }
 
+// ── Notes panel ──
+// tmsNotesPanel(key,data,months,cm,textOf): the section's notes beside its chart, one month at a time and in full
+// (a./b./c. points; numbers and key terms lit). < > step through the period's months, and clicking a month on the
+// chart beside it (Chart.js bars, or trend panels through onPick) turns it to that month. textOf(month) gives the
+// text, by default that month's notes. tmsNotesLog(key,data,months,textOf): every month's notes, newest first, in a
+// collapsible Notes Log under the section.
+var _tn={};
+function tmsNoteText(data,textOf){return textOf||function(m){return(data[m]||{}).notes||''}}
+// a./b./1./• start a point; a line that doesn't, after one that hasn't ended its sentence, carries that point on
+function tmsNoteItems(text,m){
+  var its=[];
+  String(text||'').split(/\n/).forEach(function(l){l=l.trim();if(!l)return;
+    var k=l.match(/^([a-zA-Z]|\d{1,2})[.)]\s+(.*)$/)||l.match(/^[•·]\s*(.*)$/);
+    if(k)its.push(k.length>2?[k[1].toLowerCase(),k[2]]:['',k[1]]);
+    else if(its.length&&!/[.!?:]$/.test(its[its.length-1][1]))its[its.length-1][1]+=' '+l;
+    else its.push(['',l])});
+  if(!its.length)return'<div class="tn-empty">No notes for '+m+'.</div>';
+  if(its.length===1&&!its[0][0])return'<p class="tn-p">'+tmsHL(its[0][1])+'</p>';   // one sentence: no bullet
+  return'<ul class="tn-list">'+its.map(function(x){return'<li><i>'+(x[0]||'•')+'</i><span>'+tmsHL(x[1])+'</span></li>'}).join('')+'</ul>';
+}
+function tmsNotesPanel(key,data,months,cm,textOf){
+  _tn[key]={text:tmsNoteText(data,textOf),months:months.slice(),m:months.indexOf(cm)>=0?cm:months[months.length-1]};
+  var arrow=function(d){return'<button type="button" class="tn-b" aria-label="'+(d<0?'Previous':'Next')+' month" onclick="tnStep(\''+key+'\','+d+')"><svg viewBox="0 0 24 24"><path d="'+(d<0?'M15 6l-6 6 6 6':'M9 6l6 6-6 6')+'"/></svg></button>'};
+  setTimeout(function(){tnShow(key,null,true);tnWire(key)},0);   // once the section and its chart are on the page
+  return'<div class="cd tn" id="tn-'+key+'"><div class="tn-h"><span class="cd-t">Notes</span><div class="tn-step">'+arrow(-1)+'<span class="tn-m" aria-live="polite"></span>'+arrow(1)+'</div></div>'+
+    '<div class="tn-body"></div><div class="tn-foot">'+(months.length>1?'Pick a month on the chart · e':'E')+'very month is in the Notes Log</div></div>';
+}
+function tnShow(key,m,quiet){
+  var s=_tn[key],el=document.getElementById('tn-'+key);if(!s||!el)return;
+  var body=el.querySelector('.tn-body');
+  if(m&&s.months.indexOf(m)>=0){if(m===s.m&&body.innerHTML)return;s.m=m}
+  var i=s.months.indexOf(s.m),b=el.querySelectorAll('.tn-b');
+  b[0].style.visibility=i>0?'':'hidden';b[1].style.visibility=i<s.months.length-1?'':'hidden';
+  el.querySelector('.tn-m').textContent=s.m;
+  body.innerHTML=tmsNoteItems(s.text(s.m),s.m);
+  if(!quiet){body.classList.remove('swap');void body.offsetWidth;body.classList.add('swap')}
+}
+function tnStep(key,d){var s=_tn[key];if(!s)return;var i=s.months.indexOf(s.m)+d;if(i<0||i>=s.months.length)return;
+  tnShow(key,s.months[i]);if(s.pick)s.pick(s.months[i])}
+function tnWire(key){
+  var el=document.getElementById('tn-'+key),grid=el&&el.closest('.tms-grid');if(!grid||grid.querySelector('.tp-wrap'))return;
+  [].forEach.call(grid.querySelectorAll('canvas'),function(cv){var ch=Chart.getChart(cv);if(!ch||/doughnut|pie/.test(ch.config.type))return;
+    cv.style.cursor='pointer';
+    cv.addEventListener('click',function(e){var hit=ch.getElementsAtEventForMode(e,'index',{intersect:false},false)[0];if(!hit)return;
+      var lb=ch.data.labels[hit.index],m=_tn[key].months.filter(function(x){return shortMonth(x)===lb||x===lb})[0];if(m)tnShow(key,m)})});
+}
+function tmsNotesLog(key,data,months,textOf){
+  var t=tmsNoteText(data,textOf),rows=months.slice().reverse().filter(function(m){return String(t(m)||'').trim()})
+    .map(function(m){return[m,tmsNoteItems(t(m),m)]});
+  return rows.length?detailBlock('dp-tn-'+key,'Notes Log',htTable(['Month','Notes'],rows,null,{left:[0,1],widths:['130px','']})).replace('cd ht-card','cd ht-card tn-log'):'';
+}
+// Unmasking: its notes, or a line from its numbers
+function tmsUnmaskText(data){return function(m){var r=data[m]||{};if(r.notes)return r.notes;
+  if(r.sources&&r.sources.length&&N(r.uid_total)>0){var top=r.sources.slice().sort(function(a,b){return b.receivers-a.receivers})[0];
+    return'In '+m+', '+fmt(r.recv_total)+' account numbers were requested across '+fmt(r.uid_total)+' UIDs.\nThe largest source was '+top.source+' with '+fmt(top.receivers)+' receivers from '+fmt(top.uid)+' UIDs.'}
+  return'No unmasking requests were submitted during '+shortMonth(m)+'.'}}
+// CS Escalation has no notes column: the lines come from its numbers
+function tmsCsText(data){return function(m){var r=data[m]||{},bc=r.by_category||{},top='',n=0;if(!N(r.total))return'';
+  Object.keys(bc).forEach(function(k){if(bc[k]>n){n=bc[k];top=k}});
+  return fmt(N(r.total))+' cases were submitted to the CS team for KYC verification due to discrepancies.\n'+(top?top+' was the most frequent issue, affecting '+fmt(n)+' UIDs.\n':'')+'UTRs were filed and revoke actions were applied to those UIDs.'}}
+
 // Sorted list of months that have data in a sub-page dict
 function tmsMonthsOf(obj){
   if(!obj)return [];
@@ -3631,9 +3711,9 @@ function renderTmsRekyc(el,data){
   var rDom=tmsDominant([{l:'Changed',v:N(d.changed)},{l:'Unchanged',v:N(d.unchanged)},{l:'No Update',v:N(d.no_update)},{l:'Revoked',v:N(d.revoked)}]);
   var rDomTxt=(rDom&&rDom.v>0)?rDom.l:'\u2014';
   var rTotTrend=tmsTrend(d,prev,function(r){return N(r.changed)+N(r.unchanged)+N(r.no_update)+N(r.revoked)});
-  var rGl=[{l:'Total Cases',v:fmt(rTotal),sub:rTotTrend?rTotTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rTotTrend?rTotTrend.cls:''},{l:'Status Updated',v:fmt(N(d.changed)),sub:rTotal>0?Math.round(N(d.changed)/rTotal*100)+'% of total':''},{l:'Dominant',v:rDomTxt,sub:rDom&&rDom.v>0?fmt(rDom.v)+' UIDs':''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('rekyc',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('rekyc',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-rekyc-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3668,9 +3748,9 @@ function renderTmsRfiUser(el,data){
   var rfuTotal=N(d.answer)+N(d.uncontactable)+N(d.on_process);
   var reachRate=rfuTotal>0?Math.round(N(d.answer)/rfuTotal*1000)/10:0;
   var rfuTrend=tmsTrend(d,prev,function(r){return N(r.answer)+N(r.uncontactable)+N(r.on_process)});
-  var rfuGl=[{l:'Total Sent',v:fmt(rfuTotal),sub:rfuTrend?rfuTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rfuTrend?rfuTrend.cls:''},{l:'Answered',v:reachRate+'%',sub:fmt(N(d.answer))+' of '+fmt(rfuTotal)},{l:'Outstanding',v:fmt(N(d.on_process)),sub:'On Process'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rfuGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('rfi_user',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('rfi_user',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-rfiu-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3714,9 +3794,9 @@ function renderTmsRfiKyb(el,data){
   var rkTotal=N(d.success)+N(d.failed)+N(d.on_process);
   var successRate=rkTotal>0?Math.round(N(d.success)/rkTotal*1000)/10:0;
   var rkTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  var rkGl=[{l:'Total Sent',v:fmt(rkTotal),sub:rkTrend?rkTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rkTrend?rkTrend.cls:''},{l:'Success Rate',v:successRate+'%',sub:fmt(N(d.success))+' EDD Success'},{l:'In Progress',v:fmt(N(d.on_process)),sub:'Under monitoring'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rkGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('rfi_kyb',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('rfi_kyb',data,months);
   el.innerHTML=h;
   // Doughnut
   var pieClr=['#2196F3','#0D47A1','#00ACC1'];
@@ -3759,9 +3839,9 @@ function renderTmsRfiMerchant(el,data){
   var rmTotal=N(d.success)+N(d.failed)+N(d.on_process);
   var rmSuccessRate=rmTotal>0?Math.round(N(d.success)/rmTotal*1000)/10:0;
   var rmTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  var rmGl=[{l:'Total Sent',v:fmt(rmTotal),sub:rmTrend?rmTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rmTrend?rmTrend.cls:''},{l:'Success Rate',v:rmSuccessRate+'%',sub:fmt(N(d.success))+' Success'},{l:'In Progress',v:fmt(N(d.on_process)),sub:'Under monitoring'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rmGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('rfi_merchant',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('rfi_merchant',data,months);
   el.innerHTML=h;
   // Doughnut
   var pieCanvas=document.getElementById('tms-rfim-d');
@@ -3794,9 +3874,9 @@ function renderTmsRisknotes(el,data){
   var rnTrend=tmsTrend(d,prev,'uid');
   var rnUtrTrend=tmsTrend(d,prev,'utr');
   var rnRepShare=N(d.utr)>0?Math.round(N(d.reported_case)/(N(d.utr)+N(d.reported_case))*100):0;
-  var rnGl=[{l:'Users Identified',v:fmt(N(d.uid)),sub:rnTrend?rnTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rnTrend?rnTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:rnUtrTrend?rnUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:rnUtrTrend?rnUtrTrend.cls:''},{l:'Previously Reported',v:fmt(N(d.reported_case)),sub:rnRepShare+'% already escalated'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(rnGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('risknotes',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('risknotes',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-rn-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3828,9 +3908,9 @@ function renderTmsP2p(el,data){
   var p2pRatio=N(d.uid)>0?(N(d.utr)/N(d.uid)).toFixed(2):'0';
   var p2pTrend=tmsTrend(d,prev,'uid');
   var p2pUtrTrend=tmsTrend(d,prev,'utr');
-  var p2pGl=[{l:'Users Flagged',v:fmt(N(d.uid)),sub:p2pTrend?p2pTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:p2pTrend?p2pTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:p2pUtrTrend?p2pUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:p2pUtrTrend?p2pUtrTrend.cls:''},{l:'Reported',v:fmt(N(d.utr)),sub:fmt(N(d.uid))+' users this month'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(p2pGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('p2p',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('p2p',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-p2p-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3861,9 +3941,9 @@ function renderTmsAnomaly(el,data){
   h+='<div class="cd"><div class="cd-t">Anomaly User Trend</div><div style="height:280px"><canvas id="tms-anomaly-c"></canvas></div></div>';
   var anTrend=tmsTrend(d,prev,'uid');
   var anUtrTrend=tmsTrend(d,prev,'utr');
-  var anGl=[{l:'Users Identified',v:fmt(N(d.uid)),sub:anTrend?anTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anTrend?anTrend.cls:''},{l:'UTRs Filed',v:fmt(N(d.utr)),sub:anUtrTrend?anUtrTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:anUtrTrend?anUtrTrend.cls:''},{l:'Reported',v:fmt(N(d.reported)),sub:isMulti?'total across all months':'Cases reported'},{l:'Face Verification',v:fmt(N(d.monitored_fv)),sub:'Monitored for verification'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(anGl,4)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('anomaly',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('anomaly',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-anomaly-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3893,9 +3973,9 @@ function renderTmsFaceVerif(el,data){
   h+='<div class="tms-grid">';
   h+='<div class="cd"><div class="cd-t">Face Verification Trend</div><div style="height:280px"><canvas id="tms-fv-c"></canvas></div></div>';
   var fvTrend=tmsTrend(d,prev,'uid');
-  var fvGl=[{l:'UIDs Verified',v:fmt(N(d.uid)),sub:fvTrend?fvTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:fvTrend?fvTrend.cls:''},{l:'Source',v:d.source||'—',sub:'Referral source'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(fvGl)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('faceverif',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('faceverif',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-fv-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3926,9 +4006,9 @@ function renderTmsDormant(el,data){
   var dorRate=N(d.uid)>0?Math.round(N(d.utr)/N(d.uid)*1000)/10:0;
   var dorTrend=tmsTrend(d,prev,'uid');
   var dorMonTrend=tmsTrend(d,prev,'monitored');
-  var dorGl=[{l:'Monitored',v:fmt(N(d.monitored)),sub:dorMonTrend?dorMonTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:dorMonTrend?dorMonTrend.cls:''},{l:'Flagged',v:fmt(N(d.uid)),sub:dorTrend?dorTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:dorTrend?dorTrend.cls:''},{l:'Reported',v:fmt(N(d.utr)),sub:dorRate+'% of flagged'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(dorGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('dormant',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('dormant',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-dor-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3960,9 +4040,9 @@ function renderTmsMerchant(el,data){
   var mrcStatus=N(d.alerts)===0?'No alerts':(N(d.alerts)===1?'1 alert':fmt(N(d.alerts))+' alerts');
   var mrcCum=0;months.forEach(function(mm){mrcCum+=N((data[mm]||{}).alerts)});
   var mrcAvg=months.length>0?(mrcCum/months.length).toFixed(1):'0';
-  var mrcGl=[{l:'This Month',v:mrcStatus,sub:mrcTrend?mrcTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:mrcTrend?mrcTrend.cls:''},{l:'Total Across Months',v:fmt(mrcCum),sub:'~'+mrcAvg+' alerts per month'}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(mrcGl,2)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+=tmsNotesPanel('merchant',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('merchant',data,months);
   el.innerHTML=h;
   var lb=months.map(shortMonth);
   allCharts.push(new Chart(document.getElementById('tms-mrc-c'),{type:'bar',data:{labels:lb,datasets:[
@@ -3997,33 +4077,19 @@ function renderTmsTms(el,data){
   h+=kp('Issue Rate',issueRate+'%',null);
   h+='</div>';
   h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Alert Closure Trend</div><div style="height:300px"><canvas id="tms-tms-c"></canvas></div></div>';
-  var tmsAlertTrend=tmsTrend(d,prev,'alerts');
-  var tmsIssueTrend=tmsTrend(d,prev,'issue');
-  var prevIssueRate=prev&&N(prev.alerts)>0?(N(prev.issue)/N(prev.alerts))*100:null;
-  var issueRateDelta=prevIssueRate!=null?(issueRate-prevIssueRate).toFixed(1):null;
-  var issueRateSub=issueRateDelta!=null?(parseFloat(issueRateDelta)>0?'\u2191 ':(parseFloat(issueRateDelta)<0?'\u2193 ':'\u2014 '))+Math.abs(parseFloat(issueRateDelta)).toFixed(1)+'pp vs '+shortMonth(prevLbl):'';
-  var issueRateCls=issueRateDelta!=null?(parseFloat(issueRateDelta)>0?'dn':(parseFloat(issueRateDelta)<0?'up':'')):'';
-  var tmsGl=[{l:'Alert Δ',v:tmsAlertTrend?tmsAlertTrend.txt:'\u2014',sub:'vs '+(prevLbl?shortMonth(prevLbl):'\u2014'),subCls:tmsAlertTrend?tmsAlertTrend.cls:''},{l:'Issue Rate',v:issueRate.toFixed(1)+'%',sub:issueRateSub,subCls:issueRateCls},{l:'Issue Δ',v:tmsIssueTrend?tmsIssueTrend.txt:'\u2014',sub:fmt(N(d.issue))+' as Issue',subCls:tmsIssueTrend?tmsIssueTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(tmsGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(d.notes))+'</div>';
+  h+='<div id="tms-tms-tp"></div>';
+  h+=tmsNotesPanel('tms',data,months,cm);
   h+='</div>';
+  h+=tmsNotesLog('tms',data,months);
   el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  // For single/few months use grouped bars (not stacked) so Issue bar is visible
-  if(months.length<=2){
-    allCharts.push(new Chart(document.getElementById('tms-tms-c'),{type:'bar',data:{labels:lb,datasets:[
-      bds('Total Alerts',months.map(function(m){return N((data[m]||{}).alerts)}),'#1565C0','#64B5F6'),
-      bds('Closed as Monitored',months.map(function(m){return N((data[m]||{}).monitored)}),'#2196F3','#90CAF9'),
-      bds('Closed as Issue',months.map(function(m){return N((data[m]||{}).issue)}),'#1A237E','#5C6BC0')
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:22}}}}));
-  } else {
-    // Multi-month: Total Alerts + Monitored as bars on left axis, Issue as bars on right axis (different scale)
-    allCharts.push(new Chart(document.getElementById('tms-tms-c'),{type:'bar',data:{labels:lb,datasets:[
-      Object.assign(bds('Total Alerts',months.map(function(m){return N((data[m]||{}).alerts)}),'#1565C0','#64B5F6'),{yAxisID:'y',datalabels:mkBDL()}),
-      Object.assign(bds('Closed as Monitored',months.map(function(m){return N((data[m]||{}).monitored)}),'#2196F3','#90CAF9'),{yAxisID:'y',datalabels:{anchor:'end',align:'end',clamp:true,clip:false,color:function(){return _lblClr},font:{size:8,weight:'700'},display:function(c){return window.showLabels},formatter:function(v){return fmt(v)},offset:2}}),
-      Object.assign(bds('Closed as Issue',months.map(function(m){return N((data[m]||{}).issue)}),'#1A237E','#5C6BC0'),{yAxisID:'y1',datalabels:mkBDL()})
-    ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:{display:false}},scales:{y:Object.assign(axOpts(),{position:'left',title:{display:true,text:'Alerts / Monitored',font:{size:9},color:gcv('--text4')||'#B0B7C3'}}),y1:Object.assign(axOpts(),{position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Issue',font:{size:9},color:gcv('--text4')||'#B0B7C3'}}),x:xO()},layout:{padding:{top:28}}}}));
-  }
+  // Alerts, closed as monitored, closed as issue: linked panels; the month picked there turns the notes too
+  var tv=function(k){return function(m){return N((data[m]||{})[k])}};
+  var share=function(k){return function(m){var r=data[m]||{};return N(r.alerts)?Math.round(N(r[k])/N(r.alerts)*1000)/10+'% of alerts':''}};
+  trendPanels('tms-tms-tp',{months:months,onPick:function(m){tnShow('tms',m)},metrics:[
+    {title:'Alerts',label:'alerts',color:CL.blue,val:tv('alerts'),fmt:fmt,note:function(){return'Alerts created in TMS'}},
+    {title:'Closed as Monitored',label:'monitored',color:CL.dk,val:tv('monitored'),fmt:fmt,note:share('monitored')},
+    {title:'Closed as Issue',label:'issue',color:CL.teal,val:tv('issue'),fmt:fmt,note:share('issue')}]});
+  _tn.tms.pick=function(m){var w=document.getElementById('tms-tms-tp');if(w&&w._tpPick)w._tpPick(m)};
 }
 
 // ── Sub-page: Unmasking Request ──
@@ -4056,23 +4122,6 @@ function renderTmsUnmask(el,data){
   var deltas=isMulti?[null,null]:tmsDeltas(d,prev,prevLbl,['uid_total','recv_total']);
   var O=outliers(deltas);
 
-  // Summary
-  var summary='';
-  if(isMulti){
-    var topSrc=null,topRecv=0;
-    Object.keys(aggSrcMap).forEach(function(k){if(aggSrcMap[k].recv>topRecv){topRecv=aggSrcMap[k].recv;topSrc=k}});
-    summary='Across '+months.length+' months, '+fmt(aggRecv)+' account numbers were requested across '+fmt(aggUid)+' UIDs.';
-    if(topSrc)summary+='\nThe largest source was '+topSrc+' with '+fmt(topRecv)+' total receivers.';
-    if(aggNotes.length)summary+='\n'+aggNotes.filter(function(n){return n.indexOf('No ')>=0||n.indexOf('0 ')>=0}).join('\n');
-  } else if(d.notes&&d.notes.length>0){
-    summary=d.notes;
-  } else if(d.sources&&d.sources.length&&N(d.uid_total)>0){
-    var top=d.sources.slice().sort(function(a,b){return b.receivers-a.receivers})[0];
-    summary='In '+cm+', '+fmt(d.recv_total)+' account numbers were requested across '+fmt(d.uid_total)+' UIDs.\n';
-    summary+='The largest source was '+top.source+' with '+fmt(top.receivers)+' receivers from '+fmt(top.uid)+' UIDs.';
-  } else {
-    summary='No unmasking requests were submitted during '+shortMonth(cm)+'.';
-  }
   var h='';
   h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
   h+=kp('Number of UID',fmt(dispUid),deltas[0],{hl:O[0]});
@@ -4082,13 +4131,13 @@ function renderTmsUnmask(el,data){
   h+='<div class="cd"><div class="cd-t">Sources \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><div style="height:300px"><canvas id="tms-um-c"></canvas></div></div>';
   h+='<div class="tms-stack">';
   var umTrend=isMulti?null:tmsTrend(d,prev,'recv_total');
-  var umGl=[{l:'Unique Sources',v:fmt(dispSrcCount),sub:isMulti?'across all months':(dispSrcCount===1?'1 request channel this month':dispSrcCount+' request channels this month')},{l:'Number of UID',v:fmt(dispUid),sub:isMulti?'total across '+months.length+' months':'UIDs requested this '+shortMonth(cm)},{l:'Account Number Receiver',v:fmt(dispRecv),sub:umTrend?umTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):(isMulti?'total across all months':''),subCls:umTrend?umTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(umGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(summary))+'</div>';
+  h+=tmsNotesPanel('unmask',data,months,cm,tmsUnmaskText(data));
   h+='<div class="cd"><div class="cd-t">Source breakdown</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th>Source</th><th class="num">UID</th><th class="num">Receivers</th></tr></thead><tbody>';
   months.forEach(function(m){var r=data[m]||{sources:[]};var srcs=r.sources||[];if(srcs.length){srcs.forEach(function(s,i){h+='<tr><td>'+(i===0?shortMonth(m):'')+'</td><td>'+s.source+'</td><td class="num">'+fmt(s.uid)+'</td><td class="num">'+fmt(s.receivers)+'</td></tr>'})}else{h+='<tr><td>'+shortMonth(m)+'</td><td style="color:var(--text4);font-style:italic">No requests</td><td class="num">0</td><td class="num">0</td></tr>'}});
   h+='</tbody></table></div>';
   h+='</div>';
   h+='</div>';
+  h+=tmsNotesLog('unmask',data,months,tmsUnmaskText(data));
   el.innerHTML=h;
   // Aggregate sources across all selected months when in multi-month mode
   var srcs=[];
@@ -4128,11 +4177,6 @@ function renderTmsCs(el,data){
   var csDeltas=csCatKeys.map(function(k){return dlt(k)});
   csDeltas.push(prev?delta(N(d.total),N(prev.total),prevLbl):null);
   var O=outliers(csDeltas);
-  // Build narrative summary from rows
-  var topCat='';var topNum=0;Object.keys(bc).forEach(function(k){if(bc[k]>topNum){topNum=bc[k];topCat=k}});
-  var summary=fmt(N(d.total))+' cases were submitted to the CS team for KYC verification due to discrepancies.\n';
-  if(topCat)summary+=topCat+' was the most frequent issue, affecting '+fmt(topNum)+' UIDs.\n';
-  summary+='UTRs were filed and revoke actions were applied to those UIDs.';
 
   var h='';
   // tmsCtx removed
@@ -4173,9 +4217,9 @@ function renderTmsCs(el,data){
   var csTopShare=N(d.total)>0?Math.round(csTop.v/N(d.total)*100):0;
   var csRevoked=0;(d.rows||[]).forEach(function(r){if(r.action&&/revoke/i.test(r.action))csRevoked+=N(r.number)});
   var csTrend=tmsTrend(d,prev,'total');
-  var csGl=[{l:'Top Category',v:csTop.l,sub:csTopShare+'% \u2022 '+fmt(csTop.v)+' UIDs'},{l:'Revoked',v:fmt(csRevoked),sub:N(d.total)>0?Math.round(csRevoked/N(d.total)*100)+'% action rate':''},{l:'Total Trend',v:fmt(N(d.total)),sub:csTrend?csTrend.txt+(prevLbl?' vs '+shortMonth(prevLbl):''):'',subCls:csTrend?csTrend.cls:''}];
-  h+='<div class="tms-narr"><div class="cd-t" style="margin-bottom:.55rem">At a Glance</div>'+tmsGlance(csGl,3)+'<div class="cd-t" style="margin-top:.7rem;margin-bottom:.45rem">Highlights</div>'+(isMulti?tmsBulletsMulti(data,months):tmsBullets(summary))+'</div>';
+  h+=tmsNotesPanel('cs',data,months,cm,tmsCsText(data));
   h+='</div>';
+  h+=tmsNotesLog('cs',data,months,tmsCsText(data));
   el.innerHTML=h;
   // Doughnut + custom legend
   var cats=Object.keys(bc);var counts=cats.map(function(k){return bc[k]});
