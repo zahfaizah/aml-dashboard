@@ -924,8 +924,8 @@ def compute_derived(sanction_data, nontms_data, tms_data):
 # ═══════════════════════════════════════════════════════════
 # RFI MERCHANT — dashboard UI (TMS section)
 # ═══════════════════════════════════════════════════════════
-# The TMS "RFI Merchant" section mirrors "RFI KYB" (KPI cards, status doughnut,
-# Month-by-Month table, notes panel + Notes Log) and reuses the same shared
+# The TMS "RFI Merchant" section mirrors "RFI KYB" (KPI cards, stacked status bars,
+# notes panel + Notes Log) and reuses the same shared
 # helpers. It is added to the template in memory at build time, so
 # AML_Dashboard_template.html stays untouched and every regenerated
 # AML_Dashboard.html keeps the tab.
@@ -937,45 +937,9 @@ _RFI_MERCHANT_RENDERER = r'''
 // ── Sub-page: RFI Merchant ──
 // Same layout as RFI KYB; reads STORE.tms.rfi_merchant (sheet "RFI Merchant").
 function renderTmsRfiMerchant(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No RFI Merchant data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['success','failed','on_process']);
-  var O=outliers(deltas);
-  var h='';
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Success',fmt(N(d.success)),deltas[0],{hl:O[0]});
-  h+=kp('Failed',fmt(N(d.failed)),deltas[1],{hl:O[1]});
-  h+=kp('On Process',fmt(N(d.on_process)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  // Left: doughnut + small monthly table
-  h+='<div class="tms-stack">';
-  h+='<div class="cd"><div class="cd-t">Status Distribution \u2014 '+shortMonth(cm)+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-rfim-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.7"><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#2196F3;margin-right:.5rem"></span>Success: <b style="color:var(--text)">'+fmt(N(d.success))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5C9CE6;margin-right:.5rem"></span>Failed: <b style="color:var(--text)">'+fmt(N(d.failed))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#00ACC1;margin-right:.5rem"></span>On Process: <b style="color:var(--text)">'+fmt(N(d.on_process))+'</b></div></div></div></div>';
-  // Monthly table (hide for single month)
-  if(months.length>=2){
-  h+='<div class="cd"><div class="cd-t">Month-by-Month</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th class="num">Success</th><th class="num">Failed</th><th class="num">On Process</th><th class="num">Total</th></tr></thead><tbody>';
-  months.forEach(function(m){var r=data[m]||{};var t=N(r.success)+N(r.failed)+N(r.on_process);h+='<tr><td>'+shortMonth(m)+'</td><td class="num">'+fmt(N(r.success))+'</td><td class="num">'+fmt(N(r.failed))+'</td><td class="num">'+fmt(N(r.on_process))+'</td><td class="num"><b>'+fmt(t)+'</b></td></tr>'});
-  h+='</tbody></table></div>';
-  }
-  h+='</div>';
-  // Right: narrative
-  var rmTotal=N(d.success)+N(d.failed)+N(d.on_process);
-  var rmSuccessRate=rmTotal>0?Math.round(N(d.success)/rmTotal*1000)/10:0;
-  var rmTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  h+=tmsNotesPanel('rfi_merchant',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('rfi_merchant',data,months);
-  el.innerHTML=h;
-  // Doughnut
-  var pieCanvas=document.getElementById('tms-rfim-d');
-  var pieCtx=pieCanvas.getContext('2d');
-  var pieGrads=[['#2196F3','#90CAF9'],['#0D47A1','#5472D3'],['#00ACC1','#4DD0E1']].map(function(p){var g=pieCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g});
-  allCharts.push(new Chart(pieCanvas,{type:'doughnut',data:{labels:['Success','Failed','On Process'],datasets:[{data:[N(d.success),N(d.failed),N(d.on_process)],backgroundColor:pieGrads,borderWidth:2,borderColor:gcv('--card')||'#fff',hoverOffset:8}]},options:{maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:tt,datalabels:mkDDL()},layout:{padding:4}}}));
+  tmsSection(el,'rfi_merchant',data,{name:'RFI Merchant',chart:'stack',title:'RFI Merchant Status',noun:['request','requests'],
+    kpis:[{l:'Success',f:'success'},{l:'Failed',f:'failed'},{l:'On Process',f:'on_process'}],
+    series:[{l:'Success',f:'success',color:CL.teal},{l:'Failed',f:'failed',color:CL.blue},{l:'On Process',f:'on_process',color:CL.navy}]});
 }'''
 
 

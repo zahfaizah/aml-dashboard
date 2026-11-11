@@ -355,7 +355,7 @@ body.dark .theme-fab-icon svg{stroke:#FFC94D}body.dark .theme-fab-icon svg circl
 .tn .hl,.tn-log .hl{color:var(--acc);font-weight:700}.tn .hl-num,.tn-log .hl-num{color:var(--acc-dk);font-weight:700}
 body.dark .tn .hl-num,body.dark .tn-log .hl-num{color:var(--acc)}
 .tn-empty{color:var(--text5);font-style:italic}.tn-p{margin:0}
-.tn-foot{margin-top:.8rem;padding-top:.55rem;border-top:1px solid var(--border);font-size:.6rem;color:var(--text4)}
+.tn-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.65rem}.tn-chips span{font-size:.62rem;font-weight:600;padding:.18rem .55rem;border-radius:999px;background:var(--acc-bg);color:var(--acc)}
 .tn-log .ht td{vertical-align:top;line-height:1.6}.tn-log .ht td:first-child{white-space:nowrap}.tn-log .tn-list li{padding-bottom:.3rem}
 .tms-narr{background:var(--card);border-radius:10px;padding:1.05rem 1.15rem;box-shadow:var(--card-sh);font-size:.78rem;line-height:1.65;color:var(--text2);transition:background .3s}
 .tms-narr-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:.45rem 0;margin-bottom:0}
@@ -666,6 +666,7 @@ body.dark .v3-icon-btn.active{background:rgba(33,150,243,.15);color:var(--acc)}
 .v2-section-row.cols-2 .tms-grid{grid-template-columns:1fr}
 .v2-section-row.cols-2 .tms-pillrow{grid-template-columns:1fr 1fr 1fr}
 .v2-section-row.cols-2 .kr{grid-template-columns:repeat(2,1fr) !important}
+.v2-section-row.cols-2 .kr.kr-n3{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
 .v2-section-row.cols-2 .cr.c2,.v2-section-row.cols-2 .cr.c2e{grid-template-columns:1fr}
 .v2-section-row.cols-2 .tms-mc-row{grid-template-columns:repeat(2,1fr) !important}
 @media(max-width:1300px){
@@ -1337,6 +1338,7 @@ function catRows(mountId,cfg){
 // Click pins a month (again or Esc lets go), arrow keys step. Bars stack up segment by segment, then the bands flow.
 // Segments look like the trend panels' bars: a 2px cap over a fading body; the active month's fill up from the floor.
 // cfg.modes[j]: {label, short, noun:[one,many], colors:[per series]}; cfg.series[k]: {label, val:[per mode: month->count]}
+// cfg.insight:false leaves out the line under the chart; cfg.onPick(month) and mount._sfPick(month) as in trendPanels.
 var _sfSeq=0;
 function stackFlow(mountId,cfg){
   var el=document.getElementById(mountId);if(!el)return;
@@ -1344,7 +1346,7 @@ function stackFlow(mountId,cfg){
   var NS='http://www.w3.org/2000/svg',H=256,BASE=H-30,LBL=22,GAP=3,INSET=10,BAND_GAP=4,MAXW=64,GROW=900,STAG=120,AT=250,FLOW=700;
   var still=calmMotion(),uid='sf'+(++_sfSeq);
   var sel=ms.indexOf(curMonth);if(sel<0)sel=n-1;
-  var hidden=[],hover=null,pinned=null,pointed=null,legendLit=null,tipOn=false,entering=true,M=cfg.modes,mode=0,lastNums=[],numFrom=null;
+  var hidden=[],hover=null,pinned=null,pointed=null,legendLit=null,tipOn=false,entering=true,M=cfg.modes,mode=0,lastNums=[],numFrom=null,picked=null;
   var levels=ms.map(function(){return 0}),lvTo=levels.slice(),lvRaf=ms.map(function(){return 0});
   var valsM=M.map(function(md,j){return S.map(function(s){return ms.map(function(m){return Math.max(0,N(s.val[j](m)))})})}),vals=valsM[0];
   function colorOf(k){return M[mode].colors[k]}
@@ -1441,6 +1443,7 @@ function stackFlow(mountId,cfg){
     var tw=tots[a].getComputedTextLength?tots[a].getComputedTextLength():24,pw=Math.round(Math.max(24,tw+14));
     pill.setAttribute('width',pw);pill.style.transform='translate('+(shownFrame.stacks[a].x+shownFrame.bw/2-pw/2)+'px,0)';
     noteEl.innerHTML=insight(a);
+    var pk=pinned!=null?pinned:sel;if(cfg.onPick&&pk!==picked){picked=pk;cfg.onPick(ms[pk])}
     scrub.setAttribute('aria-valuenow',a+1);
     var both=function(k){return M.map(function(md,j){var v=valsM[j][k][a];return fmt(v)+' '+md.noun[v===1?0:1]}).join(', ')};
     scrub.setAttribute('aria-valuetext',ms[a]+': '+S.map(function(s,k){return s.label+' '+both(k)}).join('; '));
@@ -1513,6 +1516,8 @@ function stackFlow(mountId,cfg){
   });
   scrub.addEventListener('focus',function(){if(scrub.matches(':focus-visible')){tipOn=true;paint()}});
   scrub.addEventListener('blur',function(){tipOn=false;paint()});
+  if(cfg.insight===false)noteEl.parentNode.style.display='none';
+  el._sfPick=function(m){var i=ms.indexOf(m);if(i<0)return;pinned=i===sel?null:i;paint()};
   entrance();
   var onResize=function(){if(!card.isConnected){window.removeEventListener('resize',onResize);return}relayout(false)};
   window.addEventListener('resize',onResize);
@@ -3453,7 +3458,7 @@ function tmsBulletsMulti(data,months){
 // tmsNotesPanel(key,data,months,cm,textOf): the section's notes beside its chart, one month at a time and in full
 // (a./b./c. points; numbers and key terms lit). < > step through the period's months, and clicking a month on the
 // chart beside it (Chart.js bars, or trend panels through onPick) turns it to that month. textOf(month) gives the
-// text, by default that month's notes. tmsNotesLog(key,data,months,textOf): every month's notes, newest first, in a
+// text, by default that month's notes; extraOf(month) an optional line above it. tmsNotesLog(key,data,months,textOf): every month's notes, newest first, in a
 // collapsible Notes Log under the section.
 var _tn={};
 function tmsNoteText(data,textOf){return textOf||function(m){return(data[m]||{}).notes||''}}
@@ -3469,12 +3474,12 @@ function tmsNoteItems(text,m){
   if(its.length===1&&!its[0][0])return'<p class="tn-p">'+tmsHL(its[0][1])+'</p>';   // one sentence: no bullet
   return'<ul class="tn-list">'+its.map(function(x){return'<li><i>'+(x[0]||'•')+'</i><span>'+tmsHL(x[1])+'</span></li>'}).join('')+'</ul>';
 }
-function tmsNotesPanel(key,data,months,cm,textOf){
-  _tn[key]={text:tmsNoteText(data,textOf),months:months.slice(),m:months.indexOf(cm)>=0?cm:months[months.length-1]};
+function tmsNotesPanel(key,data,months,cm,textOf,extraOf){
+  _tn[key]={text:tmsNoteText(data,textOf),extra:extraOf,months:months.slice(),m:months.indexOf(cm)>=0?cm:months[months.length-1]};
   var arrow=function(d){return'<button type="button" class="tn-b" aria-label="'+(d<0?'Previous':'Next')+' month" onclick="tnStep(\''+key+'\','+d+')"><svg viewBox="0 0 24 24"><path d="'+(d<0?'M15 6l-6 6 6 6':'M9 6l6 6-6 6')+'"/></svg></button>'};
   setTimeout(function(){tnShow(key,null,true);tnWire(key)},0);   // once the section and its chart are on the page
   return'<div class="cd tn" id="tn-'+key+'"><div class="tn-h"><span class="cd-t">Notes</span><div class="tn-step">'+arrow(-1)+'<span class="tn-m" aria-live="polite"></span>'+arrow(1)+'</div></div>'+
-    '<div class="tn-body"></div><div class="tn-foot">'+(months.length>1?'Pick a month on the chart · e':'E')+'very month is in the Notes Log</div></div>';
+    '<div class="tn-body"></div></div>';
 }
 function tnShow(key,m,quiet){
   var s=_tn[key],el=document.getElementById('tn-'+key);if(!s||!el)return;
@@ -3483,7 +3488,7 @@ function tnShow(key,m,quiet){
   var i=s.months.indexOf(s.m),b=el.querySelectorAll('.tn-b');
   b[0].style.visibility=i>0?'':'hidden';b[1].style.visibility=i<s.months.length-1?'':'hidden';
   el.querySelector('.tn-m').textContent=s.m;
-  body.innerHTML=tmsNoteItems(s.text(s.m),s.m);
+  body.innerHTML=(s.extra?s.extra(s.m):'')+tmsNoteItems(s.text(s.m),s.m);
   if(!quiet){body.classList.remove('swap');void body.offsetWidth;body.classList.add('swap')}
 }
 function tnStep(key,d){var s=_tn[key];if(!s)return;var i=s.months.indexOf(s.m)+d;if(i<0||i>=s.months.length)return;
@@ -3685,565 +3690,144 @@ function renderTms(tabId){
   el.innerHTML='<div class="placeholder">Unknown TMS sub-page: '+tabId+'</div>';
 }
 
-// ── Sub-page: Re-KYC User ──
+// ── TMS-team sections ──
+// tmsSection(el,key,data,cfg) draws a TMS-team section the way Screening's are drawn: KPI cards, the chart and the
+// notes panel side by side, then the Notes Log (and any other logs). Counts get linked trend panels (cfg.chart
+// 'panels'); a total split into outcomes gets stacked bars ('stack'). The chart and the notes pick months together.
+// The cards show the dashboard month, or the period's sum when several months are picked (no change badge then).
+// cfg: {name, kpis:[{l, f (field, or function(row)->number), v(row,months)->string for a value that isn't a count}],
+//   chart, title and noun:[one,many] (stack), series:[{l, f, color, note(month) (panels)}], cm(months) (month to
+//   open on), textOf, extraOf (notes panel), logs(months)->html}
+// KPI labels stay as they were: the sparklines under them are looked up by label.
+function tmsSection(el,key,data,cfg){
+  var months=tmsMonthsOf(data);
+  if(!months.length){el.innerHTML='<div class="placeholder">No '+cfg.name+' data.</div>';return}
+  var cm=cfg.cm?cfg.cm(months):(months.indexOf(curMonth)>=0?curMonth:months[months.length-1]);
+  var isMulti=months.length>1,d=isMulti?tmsAgg(data,months):(data[cm]||{});
+  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null),prev=prevLbl?data[prevLbl]:null;
+  var num=function(f,r){r=r||{};return typeof f==='function'?f(r):N(r[f])};
+  var dl=cfg.kpis.map(function(k){return k.f!=null&&prev?delta(num(k.f,d),num(k.f,prev),prevLbl):null}),O=outliers(dl);
+  var h='<div class="kr kr-n'+cfg.kpis.length+'" style="grid-template-columns:repeat('+cfg.kpis.length+',minmax(0,1fr))">';
+  cfg.kpis.forEach(function(k,i){h+=kp(k.l,k.v?k.v(d,months):fmt(num(k.f,d)),dl[i],O[i]?{hl:true}:null)});
+  h+='</div><div class="tms-grid"><div id="tms-'+key+'-ch"></div>'+tmsNotesPanel(key,data,months,cm,cfg.textOf,cfg.extraOf)+'</div>';
+  h+=tmsNotesLog(key,data,months,cfg.textOf)+(cfg.logs?cfg.logs(months):'');
+  el.innerHTML=h;
+  var mount='tms-'+key+'-ch',S=cfg.series,val=function(sr){return function(m){return num(sr.f,data[m])}},pick=function(m){tnShow(key,m)};
+  if(cfg.chart==='stack')stackFlow(mount,{months:months,title:cfg.title,insight:false,onPick:pick,
+    modes:[{label:cfg.title,noun:cfg.noun,colors:S.map(function(sr){return sr.color})}],
+    series:S.map(function(sr){return{label:sr.l,val:[val(sr)]}})});
+  else trendPanels(mount,{months:months,onPick:pick,metrics:S.map(function(sr){
+    return{title:sr.l,label:sr.noun||sr.l.toLowerCase(),color:sr.color,val:val(sr),fmt:fmt,note:sr.note||function(){return''}}})});
+  var w=document.getElementById(mount);
+  _tn[key].pick=function(m){if(w._tpPick)w._tpPick(m);else if(w._sfPick)w._sfPick(m)};
+  if(cfg.cm)_tn[key].pick(cm);   // the chart opens on the dashboard month; a section that opens elsewhere moves it
+}
+// share of another field in the same month, for a trend panel's note
+function tmsShare(data,k,of,what){return function(m){var r=data[m]||{};return N(r[of])?Math.round(N(r[k])/N(r[of])*1000)/10+'% of '+what:''}}
+
 function renderTmsRekyc(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Re-KYC data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['changed','unchanged','no_update','revoked']);
-  var O=outliers(deltas);
-  var total=N(d.changed)+N(d.unchanged)+N(d.no_update)+N(d.revoked);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(4,1fr)">';
-  h+=kp('Changed',fmt(N(d.changed)),deltas[0],{hl:O[0]});
-  h+=kp('Unchanged',fmt(N(d.unchanged)),deltas[1],{hl:O[1]});
-  h+=kp('No Update',fmt(N(d.no_update)),deltas[2],{hl:O[2]});
-  h+=kp('Revoked / Suspended',fmt(N(d.revoked)),deltas[3],{hl:O[3]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Status Trend</div><div style="height:280px"><canvas id="tms-rekyc-c"></canvas></div></div>';
-  var rTotal=N(d.changed)+N(d.unchanged)+N(d.no_update)+N(d.revoked);
-  var rDom=tmsDominant([{l:'Changed',v:N(d.changed)},{l:'Unchanged',v:N(d.unchanged)},{l:'No Update',v:N(d.no_update)},{l:'Revoked',v:N(d.revoked)}]);
-  var rDomTxt=(rDom&&rDom.v>0)?rDom.l:'\u2014';
-  var rTotTrend=tmsTrend(d,prev,function(r){return N(r.changed)+N(r.unchanged)+N(r.no_update)+N(r.revoked)});
-  h+=tmsNotesPanel('rekyc',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('rekyc',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-rekyc-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Changed',months.map(function(m){return N((data[m]||{}).changed)}),'#2196F3','#90CAF9'),
-    bds('Unchanged',months.map(function(m){return N((data[m]||{}).unchanged)}),'#5C9CE6','#B3D4FC'),
-    bds('No Update',months.map(function(m){return N((data[m]||{}).no_update)}),'#0D47A1','#5472D3'),
-    bds('Revoked',months.map(function(m){return N((data[m]||{}).revoked)}),'#90A4AE','#CFD8DC')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'rekyc',data,{name:'Re-KYC',chart:'stack',title:'Re-KYC Status',noun:['case','cases'],
+    kpis:[{l:'Changed',f:'changed'},{l:'Unchanged',f:'unchanged'},{l:'No Update',f:'no_update'},{l:'Revoked / Suspended',f:'revoked'}],
+    series:[{l:'Changed',f:'changed',color:CL.blue},{l:'Unchanged',f:'unchanged',color:'#90CAF9'},{l:'No Update',f:'no_update',color:CL.navy},{l:'Revoked',f:'revoked',color:CL.teal}]});
 }
 
-// ── Sub-page: RFI User ──
 function renderTmsRfiUser(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No RFI User data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['answer','uncontactable','on_process']);
-  var O=outliers(deltas);
-  var total=N(d.answer)+N(d.uncontactable)+N(d.on_process);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Answer',fmt(N(d.answer)),deltas[0],{hl:O[0]});
-  h+=kp('Uncontactable',fmt(N(d.uncontactable)),deltas[1],{hl:O[1]});
-  h+=kp('On Process',fmt(N(d.on_process)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">RFI Outcome Trend</div><div style="height:280px"><canvas id="tms-rfiu-c"></canvas></div></div>';
-  var rfuTotal=N(d.answer)+N(d.uncontactable)+N(d.on_process);
-  var reachRate=rfuTotal>0?Math.round(N(d.answer)/rfuTotal*1000)/10:0;
-  var rfuTrend=tmsTrend(d,prev,function(r){return N(r.answer)+N(r.uncontactable)+N(r.on_process)});
-  h+=tmsNotesPanel('rfi_user',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('rfi_user',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-rfiu-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Answer',months.map(function(m){return N((data[m]||{}).answer)}),'#2196F3','#90CAF9'),
-    bds('Uncontactable',months.map(function(m){return N((data[m]||{}).uncontactable)}),'#1565C0','#5C9CE6'),
-    bds('On Process',months.map(function(m){return N((data[m]||{}).on_process)}),'#0D47A1','#5472D3')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'rfi_user',data,{name:'RFI User',chart:'stack',title:'RFI Outcome',noun:['request','requests'],
+    kpis:[{l:'Answer',f:'answer'},{l:'Uncontactable',f:'uncontactable'},{l:'On Process',f:'on_process'}],
+    series:[{l:'Answer',f:'answer',color:CL.teal},{l:'Uncontactable',f:'uncontactable',color:CL.blue},{l:'On Process',f:'on_process',color:CL.navy}]});
 }
 
-// ── Sub-page: RFI KYB ──
 function renderTmsRfiKyb(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No RFI KYB data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['success','failed','on_process']);
-  var O=outliers(deltas);
-  var total=N(d.success)+N(d.failed)+N(d.on_process);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Success',fmt(N(d.success)),deltas[0],{hl:O[0]});
-  h+=kp('Failed',fmt(N(d.failed)),deltas[1],{hl:O[1]});
-  h+=kp('On Process',fmt(N(d.on_process)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  // Left: doughnut + small monthly table
-  h+='<div class="tms-stack">';
-  h+='<div class="cd"><div class="cd-t">Status Distribution \u2014 '+shortMonth(cm)+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-rfik-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.7"><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#2196F3;margin-right:.5rem"></span>Success: <b style="color:var(--text)">'+fmt(N(d.success))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5C9CE6;margin-right:.5rem"></span>Failed: <b style="color:var(--text)">'+fmt(N(d.failed))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#00ACC1;margin-right:.5rem"></span>On Process: <b style="color:var(--text)">'+fmt(N(d.on_process))+'</b></div></div></div></div>';
-  // Monthly table (hide for single month)
-  if(months.length>=2){
-  h+='<div class="cd"><div class="cd-t">Month-by-Month</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th class="num">Success</th><th class="num">Failed</th><th class="num">On Process</th><th class="num">Total</th></tr></thead><tbody>';
-  months.forEach(function(m){var r=data[m]||{};var t=N(r.success)+N(r.failed)+N(r.on_process);h+='<tr><td>'+shortMonth(m)+'</td><td class="num">'+fmt(N(r.success))+'</td><td class="num">'+fmt(N(r.failed))+'</td><td class="num">'+fmt(N(r.on_process))+'</td><td class="num"><b>'+fmt(t)+'</b></td></tr>'});
-  h+='</tbody></table></div>';
-  }
-  h+='</div>';
-  // Right: narrative
-  var rkTotal=N(d.success)+N(d.failed)+N(d.on_process);
-  var successRate=rkTotal>0?Math.round(N(d.success)/rkTotal*1000)/10:0;
-  var rkTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  h+=tmsNotesPanel('rfi_kyb',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('rfi_kyb',data,months);
-  el.innerHTML=h;
-  // Doughnut
-  var pieClr=['#2196F3','#0D47A1','#00ACC1'];
-  var pieCanvas=document.getElementById('tms-rfik-d');
-  var pieCtx=pieCanvas.getContext('2d');
-  var pieGrads=[['#2196F3','#90CAF9'],['#0D47A1','#5472D3'],['#00ACC1','#4DD0E1']].map(function(p){var g=pieCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g});
-  allCharts.push(new Chart(pieCanvas,{type:'doughnut',data:{labels:['Success','Failed','On Process'],datasets:[{data:[N(d.success),N(d.failed),N(d.on_process)],backgroundColor:pieGrads,borderWidth:2,borderColor:gcv('--card')||'#fff',hoverOffset:8}]},options:{maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:tt,datalabels:mkDDL()},layout:{padding:4}}}));
+  tmsSection(el,'rfi_kyb',data,{name:'RFI KYB',chart:'stack',title:'RFI KYB Status',noun:['request','requests'],
+    kpis:[{l:'Success',f:'success'},{l:'Failed',f:'failed'},{l:'On Process',f:'on_process'}],
+    series:[{l:'Success',f:'success',color:CL.teal},{l:'Failed',f:'failed',color:CL.blue},{l:'On Process',f:'on_process',color:CL.navy}]});
 }
 
 // ── Sub-page: RFI Merchant ──
 // Same layout as RFI KYB; reads STORE.tms.rfi_merchant (sheet "RFI Merchant").
 function renderTmsRfiMerchant(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No RFI Merchant data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['success','failed','on_process']);
-  var O=outliers(deltas);
-  var h='';
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Success',fmt(N(d.success)),deltas[0],{hl:O[0]});
-  h+=kp('Failed',fmt(N(d.failed)),deltas[1],{hl:O[1]});
-  h+=kp('On Process',fmt(N(d.on_process)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  // Left: doughnut + small monthly table
-  h+='<div class="tms-stack">';
-  h+='<div class="cd"><div class="cd-t">Status Distribution \u2014 '+shortMonth(cm)+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-rfim-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.7"><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#2196F3;margin-right:.5rem"></span>Success: <b style="color:var(--text)">'+fmt(N(d.success))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#5C9CE6;margin-right:.5rem"></span>Failed: <b style="color:var(--text)">'+fmt(N(d.failed))+'</b></div><div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#00ACC1;margin-right:.5rem"></span>On Process: <b style="color:var(--text)">'+fmt(N(d.on_process))+'</b></div></div></div></div>';
-  // Monthly table (hide for single month)
-  if(months.length>=2){
-  h+='<div class="cd"><div class="cd-t">Month-by-Month</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th class="num">Success</th><th class="num">Failed</th><th class="num">On Process</th><th class="num">Total</th></tr></thead><tbody>';
-  months.forEach(function(m){var r=data[m]||{};var t=N(r.success)+N(r.failed)+N(r.on_process);h+='<tr><td>'+shortMonth(m)+'</td><td class="num">'+fmt(N(r.success))+'</td><td class="num">'+fmt(N(r.failed))+'</td><td class="num">'+fmt(N(r.on_process))+'</td><td class="num"><b>'+fmt(t)+'</b></td></tr>'});
-  h+='</tbody></table></div>';
-  }
-  h+='</div>';
-  // Right: narrative
-  var rmTotal=N(d.success)+N(d.failed)+N(d.on_process);
-  var rmSuccessRate=rmTotal>0?Math.round(N(d.success)/rmTotal*1000)/10:0;
-  var rmTrend=tmsTrend(d,prev,function(r){return N(r.success)+N(r.failed)+N(r.on_process)});
-  h+=tmsNotesPanel('rfi_merchant',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('rfi_merchant',data,months);
-  el.innerHTML=h;
-  // Doughnut
-  var pieCanvas=document.getElementById('tms-rfim-d');
-  var pieCtx=pieCanvas.getContext('2d');
-  var pieGrads=[['#2196F3','#90CAF9'],['#0D47A1','#5472D3'],['#00ACC1','#4DD0E1']].map(function(p){var g=pieCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g});
-  allCharts.push(new Chart(pieCanvas,{type:'doughnut',data:{labels:['Success','Failed','On Process'],datasets:[{data:[N(d.success),N(d.failed),N(d.on_process)],backgroundColor:pieGrads,borderWidth:2,borderColor:gcv('--card')||'#fff',hoverOffset:8}]},options:{maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:tt,datalabels:mkDDL()},layout:{padding:4}}}));
+  tmsSection(el,'rfi_merchant',data,{name:'RFI Merchant',chart:'stack',title:'RFI Merchant Status',noun:['request','requests'],
+    kpis:[{l:'Success',f:'success'},{l:'Failed',f:'failed'},{l:'On Process',f:'on_process'}],
+    series:[{l:'Success',f:'success',color:CL.teal},{l:'Failed',f:'failed',color:CL.blue},{l:'On Process',f:'on_process',color:CL.navy}]});
 }
 
-// ── Sub-page: Risk Notes ──
 function renderTmsRisknotes(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Risk Notes data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr','reported_case']);
-  var O=outliers(deltas);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Number of UID',fmt(N(d.uid)),deltas[0],{hl:O[0]});
-  h+=kp('Number of UTR',fmt(N(d.utr)),deltas[1],{hl:O[1]});
-  h+=kp('Reported Case',fmt(N(d.reported_case)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">UID / UTR / Reported Case Trend</div><div style="height:280px"><canvas id="tms-rn-c"></canvas></div></div>';
-  var rnRatio=N(d.uid)>0?Math.round(N(d.utr)/N(d.uid)*100)/100:0;
-  var rnTrend=tmsTrend(d,prev,'uid');
-  var rnUtrTrend=tmsTrend(d,prev,'utr');
-  var rnRepShare=N(d.utr)>0?Math.round(N(d.reported_case)/(N(d.utr)+N(d.reported_case))*100):0;
-  h+=tmsNotesPanel('risknotes',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('risknotes',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-rn-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Number of UID',months.map(function(m){return N((data[m]||{}).uid)}),'#2196F3','#90CAF9'),
-    bds('Number of UTR',months.map(function(m){return N((data[m]||{}).utr)}),'#1565C0','#5C9CE6'),
-    bds('Reported Case',months.map(function(m){return N((data[m]||{}).reported_case)}),'#00ACC1','#4DD0E1')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'risknotes',data,{name:'Risk Notes',chart:'panels',
+    kpis:[{l:'Number of UID',f:'uid'},{l:'Number of UTR',f:'utr'},{l:'Reported Case',f:'reported_case'}],
+    series:[{l:'UIDs',f:'uid',color:CL.blue,noun:'UIDs'},{l:'UTRs',f:'utr',color:CL.dk,noun:'UTRs'},{l:'Reported Cases',f:'reported_case',color:CL.teal,noun:'reported cases'}]});
 }
 
-// ── Sub-page: P2P Receiver ──
 function renderTmsP2p(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No P2P Receiver data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr']);
-  var O=outliers(deltas);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-  h+=kp('Number of UID',fmt(N(d.uid)),deltas[0],{hl:O[0]});
-  h+=kp('Number of UTR',fmt(N(d.utr)),deltas[1],{hl:O[1]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">P2P Receiver Trend</div><div style="height:280px"><canvas id="tms-p2p-c"></canvas></div></div>';
-  var p2pRatio=N(d.uid)>0?(N(d.utr)/N(d.uid)).toFixed(2):'0';
-  var p2pTrend=tmsTrend(d,prev,'uid');
-  var p2pUtrTrend=tmsTrend(d,prev,'utr');
-  h+=tmsNotesPanel('p2p',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('p2p',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-p2p-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Number of UID',months.map(function(m){return N((data[m]||{}).uid)}),'#2196F3','#90CAF9'),
-    bds('Number of UTR',months.map(function(m){return N((data[m]||{}).utr)}),'#0D47A1','#5472D3')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'p2p',data,{name:'P2P Receiver',chart:'panels',
+    kpis:[{l:'Number of UID',f:'uid'},{l:'Number of UTR',f:'utr'}],
+    series:[{l:'UIDs',f:'uid',color:CL.blue,noun:'UIDs'},{l:'UTRs',f:'utr',color:CL.dk,noun:'UTRs'}]});
 }
 
-// ── Sub-page: Anomaly User ──
 function renderTmsAnomaly(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Anomaly User data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['uid','utr','reported','monitored_fv']);
-  var O=outliers(deltas);
-  var h='';
-  h+='<div class="kr" style="grid-template-columns:repeat(4,1fr)">';
-  h+=kp('Number of UID',fmt(N(d.uid)),deltas[0],{hl:O[0]});
-  h+=kp('Number of UTR',fmt(N(d.utr)),deltas[1],{hl:O[1]});
-  h+=kp('Reported',fmt(N(d.reported)),deltas[2],{hl:O[2]});
-  h+=kp('Monitored + Face Verification',fmt(N(d.monitored_fv)),deltas[3],{hl:O[3]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Anomaly User Trend</div><div style="height:280px"><canvas id="tms-anomaly-c"></canvas></div></div>';
-  var anTrend=tmsTrend(d,prev,'uid');
-  var anUtrTrend=tmsTrend(d,prev,'utr');
-  h+=tmsNotesPanel('anomaly',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('anomaly',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-anomaly-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Number of UID',months.map(function(m){return N((data[m]||{}).uid)}),'#2196F3','#90CAF9'),
-    bds('Number of UTR',months.map(function(m){return N((data[m]||{}).utr)}),'#1565C0','#5C9CE6'),
-    bds('Reported',months.map(function(m){return N((data[m]||{}).reported)}),'#00ACC1','#4DD0E1'),
-    bds('Monitored + FV',months.map(function(m){return N((data[m]||{}).monitored_fv)}),'#0D47A1','#5472D3')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'anomaly',data,{name:'Anomaly User',chart:'panels',
+    kpis:[{l:'Number of UID',f:'uid'},{l:'Number of UTR',f:'utr'},{l:'Reported',f:'reported'},{l:'Monitored + Face Verification',f:'monitored_fv'}],
+    series:[{l:'UIDs',f:'uid',color:CL.blue,noun:'UIDs'},{l:'UTRs',f:'utr',color:CL.dk,noun:'UTRs'},{l:'Reported',f:'reported',color:CL.teal,noun:'reported'},
+            {l:'Monitored + Face Verification',f:'monitored_fv',color:CL.navy,noun:'monitored + FV'}]});
 }
 
-// ── Sub-page: Face Verification ──
+// Face Verification: the sources come as one 'a. … b. …' cell; split into chips over the month's notes
+function tmsFvSources(r){return String((r||{}).source||'').split(/\n/).map(function(x){return x.replace(/^\s*([a-zA-Z]|\d{1,2})[.)]\s*/,'').trim()}).filter(Boolean)}
 function renderTmsFaceVerif(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Face Verification data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['uid']);
-  var O=outliers(deltas);
-  var h='';
-  h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-  h+=kp('Number of UID',fmt(N(d.uid)),deltas[0],{hl:O[0]});
-  h+=kp('Source',d.source||'—',null);
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Face Verification Trend</div><div style="height:280px"><canvas id="tms-fv-c"></canvas></div></div>';
-  var fvTrend=tmsTrend(d,prev,'uid');
-  h+=tmsNotesPanel('faceverif',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('faceverif',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-fv-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Number of UID',months.map(function(m){return N((data[m]||{}).uid)}),'#2196F3','#90CAF9')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'faceverif',data,{name:'Face Verification',chart:'panels',
+    kpis:[{l:'Number of UID',f:'uid'},{l:'Sources',v:function(d,ms){var all=[];ms.forEach(function(m){tmsFvSources(data[m]).forEach(function(x){if(all.indexOf(x)<0)all.push(x)})});
+      return fmt(ms.length>1?all.length:tmsFvSources(data[ms[0]]).length)}}],
+    series:[{l:'UIDs Referred',f:'uid',color:CL.blue,noun:'UIDs',note:function(m){var n=tmsFvSources(data[m]).length;return n?'from '+n+' source'+(n>1?'s':''):''}}],
+    extraOf:function(m){var x=tmsFvSources(data[m]);return x.length?'<div class="tn-chips">'+x.map(function(t){return'<span>'+tmsEscape(t)+'</span>'}).join('')+'</div>':''}});
 }
 
-// ── Sub-page: Dormant ──
 function renderTmsDormant(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Dormant data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['monitored','uid','utr']);
-  var O=outliers(deltas);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(3,1fr)">';
-  h+=kp('Monitored',fmt(N(d.monitored)),deltas[0],{hl:O[0]});
-  h+=kp('Users Flagged',fmt(N(d.uid)),deltas[1],{hl:O[1]});
-  h+=kp('UTRs Filed',fmt(N(d.utr)),deltas[2],{hl:O[2]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Dormant Trend</div><div style="height:280px"><canvas id="tms-dor-c"></canvas></div></div>';
-  var dorRate=N(d.uid)>0?Math.round(N(d.utr)/N(d.uid)*1000)/10:0;
-  var dorTrend=tmsTrend(d,prev,'uid');
-  var dorMonTrend=tmsTrend(d,prev,'monitored');
-  h+=tmsNotesPanel('dormant',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('dormant',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-dor-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Monitored',months.map(function(m){return N((data[m]||{}).monitored)}),'#2196F3','#90CAF9'),
-    bds('Number of UID',months.map(function(m){return N((data[m]||{}).uid)}),'#5C9CE6','#B3D4FC'),
-    bds('Number of UTR',months.map(function(m){return N((data[m]||{}).utr)}),'#0D47A1','#5472D3')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'dormant',data,{name:'Dormant',chart:'panels',
+    kpis:[{l:'Monitored',f:'monitored'},{l:'Users Flagged',f:'uid'},{l:'UTRs Filed',f:'utr'}],
+    series:[{l:'Monitored',f:'monitored',color:CL.blue,noun:'monitored'},{l:'Users Flagged',f:'uid',color:CL.dk,noun:'users flagged'},{l:'UTRs Filed',f:'utr',color:CL.teal,noun:'UTRs'}]});
 }
 
-// ── Sub-page: Merchant Screening ──
 function renderTmsMerchant(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Merchant Screening data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['alerts']);
-  var O=outliers(deltas);
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat(1,minmax(0,260px))">';
-  h+=kp('Number of Alert',fmt(N(d.alerts)),deltas[0],{hl:O[0]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Alert Trend</div><div style="height:280px"><canvas id="tms-mrc-c"></canvas></div></div>';
-  var mrcTrend=tmsTrend(d,prev,'alerts');
-  var mrcStatus=N(d.alerts)===0?'No alerts':(N(d.alerts)===1?'1 alert':fmt(N(d.alerts))+' alerts');
-  var mrcCum=0;months.forEach(function(mm){mrcCum+=N((data[mm]||{}).alerts)});
-  var mrcAvg=months.length>0?(mrcCum/months.length).toFixed(1):'0';
-  h+=tmsNotesPanel('merchant',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('merchant',data,months);
-  el.innerHTML=h;
-  var lb=months.map(shortMonth);
-  allCharts.push(new Chart(document.getElementById('tms-mrc-c'),{type:'bar',data:{labels:lb,datasets:[
-    bds('Number of Alert',months.map(function(m){return N((data[m]||{}).alerts)}),'#2196F3','#90CAF9')
-  ]},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{display:false},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:28,right:18}}}}));
+  tmsSection(el,'merchant',data,{name:'Merchant Screening',chart:'panels',
+    kpis:[{l:'Number of Alert',f:'alerts'}],
+    series:[{l:'Alerts',f:'alerts',color:CL.blue,noun:'alerts',note:function(){return'Merchant screening name alerts'}}]});
 }
 
 // ── Sub-page: TMS (the actual TMS row) ──
 function renderTmsTms(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No TMS data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{});
-  // Use full month list for prev lookup so deltas work on single month
-  var allTmsMonths=Object.keys(data).sort(function(a,b){return month_sort_key(a)-month_sort_key(b)});
-  var cmIdxFull=allTmsMonths.indexOf(cm);
-  var prevLbl=isMulti?null:(cmIdxFull>0?allTmsMonths[cmIdxFull-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  var deltas=tmsDeltas(d,prev,prevLbl,['alerts','monitored','issue']);
-  var O=outliers(deltas);
-  var monitorRate=N(d.alerts)>0?Math.min(100,Math.round(N(d.monitored)/N(d.alerts)*1000)/10):0;
-  var issueRate=N(d.alerts)>0?Math.min(100,Math.round(N(d.issue)/N(d.alerts)*1000)/10):0;
-  var h='';
-  // tmsCtx removed
-  // Standard KPI row — same style as Sanction / NON TMS highlights
-  h+='<div class="kr" style="grid-template-columns:repeat(5,1fr)">';
-  h+=kp('Number of Alert',fmt(N(d.alerts)),deltas[0],O[0]?{hl:true}:null);
-  h+=kp('Closed as Monitored',fmt(N(d.monitored)),deltas[1],O[1]?{hl:true}:null);
-  h+=kp('Closed as Issue',fmt(N(d.issue)),deltas[2],O[2]?{hl:true}:null);
-  h+=kp('Monitor Rate',monitorRate+'%',null);
-  h+=kp('Issue Rate',issueRate+'%',null);
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div id="tms-tms-tp"></div>';
-  h+=tmsNotesPanel('tms',data,months,cm);
-  h+='</div>';
-  h+=tmsNotesLog('tms',data,months);
-  el.innerHTML=h;
-  // Alerts, closed as monitored, closed as issue: linked panels; the month picked there turns the notes too
-  var tv=function(k){return function(m){return N((data[m]||{})[k])}};
-  var share=function(k){return function(m){var r=data[m]||{};return N(r.alerts)?Math.round(N(r[k])/N(r.alerts)*1000)/10+'% of alerts':''}};
-  trendPanels('tms-tms-tp',{months:months,onPick:function(m){tnShow('tms',m)},metrics:[
-    {title:'Alerts',label:'alerts',color:CL.blue,val:tv('alerts'),fmt:fmt,note:function(){return'Alerts created in TMS'}},
-    {title:'Closed as Monitored',label:'monitored',color:CL.dk,val:tv('monitored'),fmt:fmt,note:share('monitored')},
-    {title:'Closed as Issue',label:'issue',color:CL.teal,val:tv('issue'),fmt:fmt,note:share('issue')}]});
-  _tn.tms.pick=function(m){var w=document.getElementById('tms-tms-tp');if(w&&w._tpPick)w._tpPick(m)};
+  var rate=function(k){return function(d){return N(d.alerts)>0?Math.min(100,Math.round(N(d[k])/N(d.alerts)*1000)/10)+'%':'0%'}};
+  tmsSection(el,'tms',data,{name:'TMS',chart:'panels',
+    kpis:[{l:'Number of Alert',f:'alerts'},{l:'Closed as Monitored',f:'monitored'},{l:'Closed as Issue',f:'issue'},{l:'Monitor Rate',v:rate('monitored')},{l:'Issue Rate',v:rate('issue')}],
+    series:[{l:'Alerts',f:'alerts',color:CL.blue,noun:'alerts',note:function(){return'Alerts created in TMS'}},
+            {l:'Closed as Monitored',f:'monitored',color:CL.dk,noun:'monitored',note:tmsShare(data,'monitored','alerts','alerts')},
+            {l:'Closed as Issue',f:'issue',color:CL.teal,noun:'issue',note:tmsShare(data,'issue','alerts','alerts')}]});
 }
 
 // ── Sub-page: Unmasking Request ──
+// Opens on the latest month that had sources; who asked, month by month, is in the Source Log
 function renderTmsUnmask(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No Unmasking Request data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  // If latest month has no real sources, fall back to most recent month that does
-  var dTest=data[cm]||{};
-  if((!dTest.sources||!dTest.sources.length)&&months.length>1){
-    for(var _i=months.length-1;_i>=0;_i--){var _d=data[months[_i]]||{};if(_d.sources&&_d.sources.length){cm=months[_i];break}}
-  }
-  var d=data[cm]||{sources:[],uid_total:0,recv_total:0};
-  var prevLbl=months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null;
-  var prev=prevLbl?data[prevLbl]:null;
-
-  // Aggregate data when multiple months selected
-  var isMulti=months.length>1;
-  var aggUid=0,aggRecv=0,aggSrcMap={},aggNotes=[];
-  if(isMulti){
-    months.forEach(function(m){var r=data[m]||{};aggUid+=N(r.uid_total);aggRecv+=N(r.recv_total);
-      (r.sources||[]).forEach(function(s){if(!aggSrcMap[s.source])aggSrcMap[s.source]={uid:0,recv:0};aggSrcMap[s.source].uid+=s.uid;aggSrcMap[s.source].recv+=s.receivers});
-      if(r.notes)aggNotes.push(shortMonth(m)+': '+r.notes);
-    });
-  }
-  var dispUid=isMulti?aggUid:N(d.uid_total);
-  var dispRecv=isMulti?aggRecv:N(d.recv_total);
-  var dispSrcCount=isMulti?Object.keys(aggSrcMap).length:(d.sources||[]).length;
-
-  var deltas=isMulti?[null,null]:tmsDeltas(d,prev,prevLbl,['uid_total','recv_total']);
-  var O=outliers(deltas);
-
-  var h='';
-  h+='<div class="kr" style="grid-template-columns:repeat(2,1fr)">';
-  h+=kp('Number of UID',fmt(dispUid),deltas[0],{hl:O[0]});
-  h+=kp('Account Number Receivers',fmt(dispRecv),deltas[1],{hl:O[1]});
-  h+='</div>';
-  h+='<div class="tms-grid">';
-  h+='<div class="cd"><div class="cd-t">Sources \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><div style="height:300px"><canvas id="tms-um-c"></canvas></div></div>';
-  h+='<div class="tms-stack">';
-  var umTrend=isMulti?null:tmsTrend(d,prev,'recv_total');
-  h+=tmsNotesPanel('unmask',data,months,cm,tmsUnmaskText(data));
-  h+='<div class="cd"><div class="cd-t">Source breakdown</div><table class="tms-mini-tb"><thead><tr><th>Month</th><th>Source</th><th class="num">UID</th><th class="num">Receivers</th></tr></thead><tbody>';
-  months.forEach(function(m){var r=data[m]||{sources:[]};var srcs=r.sources||[];if(srcs.length){srcs.forEach(function(s,i){h+='<tr><td>'+(i===0?shortMonth(m):'')+'</td><td>'+s.source+'</td><td class="num">'+fmt(s.uid)+'</td><td class="num">'+fmt(s.receivers)+'</td></tr>'})}else{h+='<tr><td>'+shortMonth(m)+'</td><td style="color:var(--text4);font-style:italic">No requests</td><td class="num">0</td><td class="num">0</td></tr>'}});
-  h+='</tbody></table></div>';
-  h+='</div>';
-  h+='</div>';
-  h+=tmsNotesLog('unmask',data,months,tmsUnmaskText(data));
-  el.innerHTML=h;
-  // Aggregate sources across all selected months when in multi-month mode
-  var srcs=[];
-  if(months.length>1){
-    var srcMap={};
-    months.forEach(function(m){var r=data[m]||{sources:[]};(r.sources||[]).forEach(function(s){
-      if(!srcMap[s.source])srcMap[s.source]={source:s.source,uid:0,receivers:0};
-      srcMap[s.source].uid+=s.uid;srcMap[s.source].receivers+=s.receivers;
-    })});
-    srcs=Object.keys(srcMap).map(function(k){return srcMap[k]}).sort(function(a,b){return b.receivers-a.receivers});
-  } else {
-    srcs=d.sources||[];
-  }
-  var labels=srcs.map(function(s){return s.source});
-  allCharts.push(new Chart(document.getElementById('tms-um-c'),{type:'bar',data:{labels:labels,datasets:[
-    bds('Number of UID',srcs.map(function(s){return s.uid}),'#2196F3','#90CAF9'),
-    bds('Account Number Receivers',srcs.map(function(s){return s.receivers}),'#1565C0','#5C9CE6')
-  ]},options:{indexAxis:'y',maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},tooltip:tt,datalabels:Object.assign({},mkBDL(),{anchor:'end',align:'right',offset:4})},scales:{x:axOpts(),y:xO()},layout:{padding:{right:36,top:8}}}}));
+  tmsSection(el,'unmask',data,{name:'Unmasking Request',chart:'panels',textOf:tmsUnmaskText(data),
+    cm:function(ms){var c=ms.indexOf(curMonth)>=0?curMonth:ms[ms.length-1];if(((data[c]||{}).sources||[]).length||ms.length<2)return c;
+      for(var i=ms.length-1;i>=0;i--)if(((data[ms[i]]||{}).sources||[]).length)return ms[i];return c},
+    kpis:[{l:'Number of UID',f:'uid_total'},{l:'Account Number Receivers',f:'recv_total'}],
+    series:[{l:'UIDs',f:'uid_total',color:CL.blue,noun:'UIDs'},{l:'Account Number Receivers',f:'recv_total',color:CL.dk,noun:'receivers',
+      note:function(m){var n=((data[m]||{}).sources||[]).length;return n?n+' source'+(n>1?'s':''):'No requests'}}],
+    logs:function(ms){var rows=[];ms.slice().reverse().forEach(function(m){((data[m]||{}).sources||[]).forEach(function(x,i){rows.push([i?'':m,x.source,N(x.uid),N(x.receivers)])})});
+      return rows.length?detailBlock('dp-um-src','Source Log',htTable(['Month','Source','UID','Receivers'],rows,null,{left:[0,1],widths:['130px','','90px','90px']})):''}});
 }
 
 // ── Sub-page: CS Escalation ──
+// Categories are whatever the months list (names compared without case); each case row is in the Escalation Log
+function tmsCsCats(data,ms){var out=[],seen={};ms.forEach(function(m){Object.keys((data[m]||{}).by_category||{}).forEach(function(c){var k=c.toLowerCase();if(!seen[k]){seen[k]=1;out.push(c)}})});return out}
+function tmsCsCount(c){return function(r){var bc=r.by_category||{},k=c.toLowerCase();return Object.keys(bc).reduce(function(a,x){return a+(x.toLowerCase()===k?N(bc[x]):0)},0)}}
 function renderTmsCs(el,data){
-  var months=tmsMonthsOf(data);
-  if(!months.length){el.innerHTML='<div class="placeholder">No CS Escalation data.</div>';return}
-  var cm=curMonth;if(months.indexOf(cm)===-1)cm=months[months.length-1];
-  var isMulti=months.length>1;
-  var d=isMulti?tmsAgg(data,months):(data[cm]||{rows:[],by_category:{},total:0});
-  if(isMulti&&!d.rows)d.rows=[];if(isMulti&&!d.by_category)d.by_category={};
-  var prevLbl=isMulti?null:(months.indexOf(cm)>0?months[months.indexOf(cm)-1]:null);
-  var prev=prevLbl?data[prevLbl]:null;
-  // KPIs by category for current month
-  var bc=d.by_category||{};
-  var prevBc=prev?prev.by_category||{}:null;
-  function dlt(k){if(!prevBc)return null;return delta(N(bc[k]),N(prevBc[k]),prevLbl)}
-  // Dynamic categories from data
-  var csCatKeys=Object.keys(bc).sort(function(a,b){return bc[b]-bc[a]});
-  var csDeltas=csCatKeys.map(function(k){return dlt(k)});
-  csDeltas.push(prev?delta(N(d.total),N(prev.total),prevLbl):null);
-  var O=outliers(csDeltas);
-
-  var h='';
-  // tmsCtx removed
-  h+='<div class="kr" style="grid-template-columns:repeat('+(csCatKeys.length+1)+',1fr)">';
-  csCatKeys.forEach(function(k,i){h+=kp(k,fmt(N(bc[k])),csDeltas[i],{hl:O[i]})});
-  h+=kp('Total Cases',fmt(N(d.total)),csDeltas[csDeltas.length-1],{hl:O[csDeltas.length-1]});
-  h+='</div>';
-  // Monthly trend across all months (so April shows alongside Jan/Feb/Mar)
-  h+='<div class="cd" style="margin-bottom:.65rem"><div class="cd-t">CS Cases by Month</div><div style="height:200px"><canvas id="tms-cs-trend"></canvas></div></div>';
-  h+='<div class="tms-grid">';
-  // Left: doughnut + per-category table
-  h+='<div class="tms-stack">';
-  h+='<div class="cd"><div class="cd-t">Category Distribution \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><div style="display:flex;align-items:center;justify-content:center;gap:1.5rem"><div style="width:180px;height:180px;flex-shrink:0"><canvas id="tms-cs-d"></canvas></div><div style="font-size:.7rem;color:var(--text3);line-height:1.85" id="tms-cs-legend"></div></div></div>';
-  // Detail table for current month
-  h+='<div class="cd"><div class="cd-t">Case Detail \u2014 '+(isMulti?'All Months':shortMonth(cm))+'</div><table class="tms-mini-tb"><thead><tr><th>Category</th><th>Remarks</th><th class="num">Number</th><th>Action</th></tr></thead><tbody>';
-  // Group rows by category for clean rowspan display
-  var csGroups={};var csOrder=[];
-  (d.rows||[]).forEach(function(r){
-    if(!csGroups[r.category]){csGroups[r.category]=[];csOrder.push(r.category)}
-    csGroups[r.category].push(r);
-  });
-  csOrder.forEach(function(cat){
-    var rows=csGroups[cat];
-    rows.forEach(function(r,i){
-      h+='<tr>';
-      if(i===0)h+='<td rowspan="'+rows.length+'" style="vertical-align:top;font-weight:600;border-right:2px solid var(--border)">'+cat+'</td>';
-      h+='<td style="white-space:normal;font-size:.66rem;color:var(--text3)">'+(r.remarks||'').replace(/\n/g,'<br>')+'</td>';
-      h+='<td class="num">'+fmt(r.number)+'</td>';
-      h+='<td style="font-size:.66rem;color:var(--text3)">'+(r.action||'').replace(/\n/g,'<br>')+'</td></tr>';
-    });
-  });
-  h+='</tbody></table></div>';
-  h+='</div>';
-  // Right: narrative
-  var csCats=Object.keys(bc);
-  var csSorted=csCats.map(function(k){return{l:k,v:bc[k]}}).sort(function(a,b){return b.v-a.v});
-  var csTop=csSorted[0]||{l:'\u2014',v:0};
-  var csTopShare=N(d.total)>0?Math.round(csTop.v/N(d.total)*100):0;
-  var csRevoked=0;(d.rows||[]).forEach(function(r){if(r.action&&/revoke/i.test(r.action))csRevoked+=N(r.number)});
-  var csTrend=tmsTrend(d,prev,'total');
-  h+=tmsNotesPanel('cs',data,months,cm,tmsCsText(data));
-  h+='</div>';
-  h+=tmsNotesLog('cs',data,months,tmsCsText(data));
-  el.innerHTML=h;
-  // Doughnut + custom legend
-  var cats=Object.keys(bc);var counts=cats.map(function(k){return bc[k]});
-  var total=counts.reduce(function(a,b){return a+b},0);
-  var palette=[['#2196F3','#90CAF9'],['#0D47A1','#5472D3'],['#00ACC1','#4DD0E1'],['#1565C0','#5C9CE6'],['#1A237E','#5C6BC0']];
-  var pieCanvas=document.getElementById('tms-cs-d');
-  var pieCtx=pieCanvas.getContext('2d');
-  var grads=palette.slice(0,cats.length).map(function(p){var g=pieCtx.createLinearGradient(0,0,0,200);g.addColorStop(0,p[0]);g.addColorStop(1,p[1]);return g});
-  // Build legend HTML
-  var leg='';cats.forEach(function(c,i){var pct=total>0?Math.round(counts[i]/total*100):0;leg+='<div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:'+palette[i%palette.length][0]+';margin-right:.5rem"></span>'+c+': <b style="color:var(--text)">'+fmt(counts[i])+'</b> <span style="color:var(--text4);font-size:.62rem">('+pct+'%)</span></div>'});
-  document.getElementById('tms-cs-legend').innerHTML=leg;
-  allCharts.push(new Chart(pieCanvas,{type:'doughnut',data:{labels:cats,datasets:[{data:counts,backgroundColor:grads,borderWidth:3,borderColor:gcv('--card')||'#fff',hoverOffset:10,spacing:3}]},options:{maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},tooltip:tt,datalabels:mkDDL()},layout:{padding:4}}}));
-  // Monthly trend - shows total cases per month across all months (incl. April)
-  var trendCanvas=document.getElementById('tms-cs-trend');
-  if(trendCanvas){
-    var trMonths=months;
-    var trLb=trMonths.map(shortMonth);
-    // Collect ALL categories across ALL months for consistent trend
-    var allCsCats={};trMonths.forEach(function(m){var b=(data[m]||{}).by_category||{};Object.keys(b).forEach(function(k){allCsCats[k]=true})});
-    var csTrendCats=Object.keys(allCsCats);
-    var csTrendPalette=[['#2196F3','#90CAF9'],['#1565C0','#5C9CE6'],['#00ACC1','#4DD0E1'],['#0D47A1','#5472D3'],['#283593','#7986CB'],['#0277BD','#4FC3F7']];
-    var csTrendDS=csTrendCats.map(function(cat,i){var p=csTrendPalette[i%csTrendPalette.length];return bds(cat,trMonths.map(function(m){var b=(data[m]||{}).by_category||{};return N(b[cat])}),p[0],p[1])});
-    allCharts.push(new Chart(trendCanvas,{type:'bar',data:{labels:trLb,datasets:csTrendDS},options:{maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:12,font:{size:10}}},tooltip:tt,datalabels:mkBDL()},scales:{y:axOpts(),x:xO()},layout:{padding:{top:18}}}}));
-  }
+  var ms=tmsMonthsOf(data),all=tmsAgg(data,ms),cats=tmsCsCats(data,ms),pal=[CL.blue,CL.navy,CL.teal,'#90CAF9',CL.indigo,CL.slate];
+  cats.sort(function(a,b){return tmsCsCount(b)(all)-tmsCsCount(a)(all)});   // biggest first: bottom of the stack, first card
+  tmsSection(el,'cs',data,{name:'CS Escalation',chart:'stack',title:'Cases by Category',noun:['case','cases'],textOf:tmsCsText(data),
+    kpis:cats.map(function(c){return{l:c,f:tmsCsCount(c)}}).concat([{l:'Total Cases',f:'total'}]),
+    series:cats.map(function(c,i){return{l:c,f:tmsCsCount(c),color:pal[i%pal.length]}}),
+    logs:function(ms){var rows=[];ms.slice().reverse().forEach(function(m){((data[m]||{}).rows||[]).forEach(function(r,i){
+        rows.push([i?'':m,tmsEscape(r.category||''),tmsEscape(r.remarks||'').replace(/\n/g,'<br>'),N(r.number),tmsEscape(r.action||'').replace(/\n/g,'<br>')])})});
+      return rows.length?detailBlock('dp-cs-rows','Escalation Log',htTable(['Month','Category','Remarks','Number','Action'],rows,null,{left:[0,1,2,4],widths:['120px','110px','','70px','']})).replace('cd ht-card','cd ht-card tn-log'):''}});
 }
 
 // ── month_sort_key JS version ──
